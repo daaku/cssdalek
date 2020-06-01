@@ -193,10 +193,9 @@ outer:
 				return err
 			}
 
-			// if not included, clear it and continue
+			// if not included, continue
 			if !a.includeSelector(chain) {
 				a.log.Printf("Excluding selector: %s\n", selector.String())
-				selector.Reset()
 				continue outer
 			}
 
@@ -272,7 +271,7 @@ outer:
 		case css.CommentGrammar:
 			continue outer
 		case css.AtRuleGrammar, css.BeginAtRuleGrammar:
-			panic("unimplemented")
+			panic(fmt.Sprintf("unimplemented: %s", data))
 		}
 	}
 	return nil
