@@ -157,18 +157,18 @@ var atMedia = []byte("@media")
 func (a *app) cssProcessor(r io.Reader, w io.Writer) error {
 	p := css.NewParser(r, false)
 
-	var selector bytes.Buffer
+	var scratch bytes.Buffer
 	selectorIncluded := false
 
 	var mediaQueries [][]byte
 
 	processSelector := func() error {
-		selector.Reset()
+		scratch.Reset()
 		for _, val := range p.Values() {
-			selector.Write(val.Data)
+			scratch.Write(val.Data)
 		}
 
-		selectorBytes := selector.Bytes()
+		selectorBytes := scratch.Bytes()
 		chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
 		if err != nil {
 			return err
@@ -201,7 +201,7 @@ func (a *app) cssProcessor(r io.Reader, w io.Writer) error {
 				return errors.WithStack(err)
 			}
 		} else {
-			a.log.Printf("Excluding selector: %s\n", selector.String())
+			a.log.Printf("Excluding selector: %s\n", scratch.String())
 		}
 
 		return nil
@@ -273,13 +273,13 @@ outer:
 			continue outer
 		case css.AtRuleGrammar, css.BeginAtRuleGrammar:
 			if bytes.EqualFold(data, atMedia) {
-				selector.Reset()
-				selector.Write(data)
+				scratch.Reset()
+				scratch.Write(data)
 				for _, val := range p.Values() {
-					selector.Write(val.Data)
+					scratch.Write(val.Data)
 				}
-				query := make([]byte, selector.Len())
-				copy(query, selector.Bytes())
+				query := make([]byte, scratch.Len())
+				copy(query, scratch.Bytes())
 				mediaQueries = append(mediaQueries, query)
 				continue outer
 			}
