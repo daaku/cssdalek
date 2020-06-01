@@ -156,6 +156,40 @@ func (a *app) cssProcessor(r io.Reader, w io.Writer) error {
 	p := css.NewParser(r, false)
 	var selector bytes.Buffer
 	selectorIncluded := false
+
+	processSelector := func() error {
+		selector.Reset()
+		for _, val := range p.Values() {
+			selector.Write(val.Data)
+		}
+
+		selectorBytes := selector.Bytes()
+		chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
+		if err != nil {
+			return err
+		}
+
+		include := a.includeSelector(chain)
+		if include {
+			// included, and we need to write a comma since we already wrote one
+			if selectorIncluded {
+				if _, err := io.WriteString(w, ","); err != nil {
+					return errors.WithStack(err)
+				}
+			}
+			selectorIncluded = true
+
+			// now write the selector itself
+			if _, err := w.Write(selectorBytes); err != nil {
+				return errors.WithStack(err)
+			}
+		} else {
+			a.log.Printf("Excluding selector: %s\n", selector.String())
+		}
+
+		return nil
+	}
+
 	excluding := false
 	//TODO: AtRules need special handling?
 outer:
@@ -182,62 +216,12 @@ outer:
 			}
 			return errors.WithStack(err)
 		case css.QualifiedRuleGrammar:
-			selector.Reset()
-			for _, val := range p.Values() {
-				selector.Write(val.Data)
-			}
-
-			selectorBytes := selector.Bytes()
-			chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
-			if err != nil {
+			if err := processSelector(); err != nil {
 				return err
-			}
-
-			// if not included, continue
-			if !a.includeSelector(chain) {
-				a.log.Printf("Excluding selector: %s\n", selector.String())
-				continue outer
-			}
-
-			// included, and we need to write a comma since we already wrote one
-			if selectorIncluded {
-				if _, err := io.WriteString(w, ","); err != nil {
-					return errors.WithStack(err)
-				}
-			}
-			selectorIncluded = true
-
-			// now write the selector itself
-			if _, err := w.Write(selectorBytes); err != nil {
-				return errors.WithStack(err)
 			}
 		case css.BeginRulesetGrammar:
-			selector.Reset()
-			for _, val := range p.Values() {
-				selector.Write(val.Data)
-			}
-
-			selectorBytes := selector.Bytes()
-			chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
-			if err != nil {
+			if err := processSelector(); err != nil {
 				return err
-			}
-
-			if a.includeSelector(chain) {
-				// if we already wrote a selector, we need to add a comma first
-				if selectorIncluded {
-					if _, err := io.WriteString(w, ","); err != nil {
-						return errors.WithStack(err)
-					}
-				}
-				selectorIncluded = true
-
-				// now the selector itself
-				if _, err := w.Write(selectorBytes); err != nil {
-					return errors.WithStack(err)
-				}
-			} else {
-				a.log.Printf("Excluding selector: %s\n", selector.String())
 			}
 
 			// if we haven't included any so far, we're excluding the entire ruleset
