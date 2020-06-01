@@ -15,7 +15,6 @@ used got dropped.
 - [ ] Attribute Selectors
 - [ ] Font Face
 - [ ] Key Frames
-- [ ] Media Queries
 - [ ] Tables
 - [ ] Psuedo Elements
 - [ ] Hook up a generic parser for random file types

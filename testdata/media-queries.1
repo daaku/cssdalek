@@ -1,0 +1,30 @@
+<body class="a-class"></body>
+--
+@media (max-width: 600px) {
+  .a-class{color:red;}
+  .b-class{color:red;}
+}
+@media (max-width: 600px) {
+  @media (max-width: 600px) {
+    .a-class{color:orange;}
+    .b-class{color:red;}
+  }
+  @media (max-width: 600px) {
+    .b-class{color:red;}
+  }
+}
+.a-class{color:green;}
+@media (max-width: 600px) {
+  .b-class{color:yellow;}
+}
+.b-class{color:blue;}
+--
+@media(max-width:600px){
+.a-class{color:red;}
+}
+@media(max-width:600px){
+@media(max-width:600px){
+.a-class{color:orange;}
+}
+}
+.a-class{color:green;}

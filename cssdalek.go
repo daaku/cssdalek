@@ -152,10 +152,15 @@ func (a *app) cssFileProcessor(filename string) error {
 	return errors.WithStack(bw.Flush())
 }
 
+var atMedia = []byte("@media")
+
 func (a *app) cssProcessor(r io.Reader, w io.Writer) error {
 	p := css.NewParser(r, false)
+
 	var selector bytes.Buffer
 	selectorIncluded := false
+
+	var mediaQueries [][]byte
 
 	processSelector := func() error {
 		selector.Reset()
@@ -178,6 +183,18 @@ func (a *app) cssProcessor(r io.Reader, w io.Writer) error {
 				}
 			}
 			selectorIncluded = true
+
+			// write all pending media queries, if any since we're including something
+			// contained within
+			for _, mq := range mediaQueries {
+				if _, err := w.Write(mq); err != nil {
+					return errors.WithStack(err)
+				}
+				if _, err := io.WriteString(w, "{"); err != nil {
+					return errors.WithStack(err)
+				}
+			}
+			mediaQueries = mediaQueries[:0]
 
 			// now write the selector itself
 			if _, err := w.Write(selectorBytes); err != nil {
@@ -255,7 +272,29 @@ outer:
 		case css.CommentGrammar:
 			continue outer
 		case css.AtRuleGrammar, css.BeginAtRuleGrammar:
+			if bytes.EqualFold(data, atMedia) {
+				selector.Reset()
+				selector.Write(data)
+				for _, val := range p.Values() {
+					selector.Write(val.Data)
+				}
+				query := make([]byte, selector.Len())
+				copy(query, selector.Bytes())
+				mediaQueries = append(mediaQueries, query)
+				continue outer
+			}
 			panic(fmt.Sprintf("unimplemented: %s", data))
+		case css.EndAtRuleGrammar:
+			if len(mediaQueries) > 0 {
+				// we did not write this media query, so throw it away and don't write a
+				// closing }
+				mediaQueries = mediaQueries[:len(mediaQueries)-1]
+			} else {
+				// we already wrote the query, so write a corresponding close
+				if _, err := io.WriteString(w, "}"); err != nil {
+					return errors.WithStack(err)
+				}
+			}
 		}
 	}
 	return nil
