@@ -154,7 +154,33 @@ func (a *app) cssFileProcessor(filename string) error {
 
 var atMedia = []byte("@media")
 
-func (a *app) cssProcessor(r io.Reader, w io.Writer) error {
+type panicError struct {
+	e error
+}
+
+func pWriteString(w io.Writer, s string) {
+	if _, err := io.WriteString(w, s); err != nil {
+		panic(panicError{errors.WithStack(err)})
+	}
+}
+
+func pWrite(w io.Writer, b []byte) {
+	if _, err := w.Write(b); err != nil {
+		panic(panicError{errors.WithStack(err)})
+	}
+}
+
+func (a *app) cssProcessor(r io.Reader, w io.Writer) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if pe, ok := r.(panicError); ok {
+				err = pe.e
+				return
+			}
+			panic(r)
+		}
+	}()
+
 	p := css.NewParser(r, false)
 
 	var scratch bytes.Buffer
@@ -162,7 +188,7 @@ func (a *app) cssProcessor(r io.Reader, w io.Writer) error {
 
 	var mediaQueries [][]byte
 
-	processSelector := func() error {
+	processSelector := func() {
 		scratch.Reset()
 		for _, val := range p.Values() {
 			scratch.Write(val.Data)
@@ -171,44 +197,33 @@ func (a *app) cssProcessor(r io.Reader, w io.Writer) error {
 		selectorBytes := scratch.Bytes()
 		chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
 		if err != nil {
-			return err
+			panic(panicError{err})
 		}
 
 		include := a.includeSelector(chain)
 		if include {
 			// included, and we need to write a comma since we already wrote one
 			if selectorIncluded {
-				if _, err := io.WriteString(w, ","); err != nil {
-					return errors.WithStack(err)
-				}
+				pWriteString(w, ",")
 			}
 			selectorIncluded = true
 
 			// write all pending media queries, if any since we're including something
 			// contained within
 			for _, mq := range mediaQueries {
-				if _, err := w.Write(mq); err != nil {
-					return errors.WithStack(err)
-				}
-				if _, err := io.WriteString(w, "{"); err != nil {
-					return errors.WithStack(err)
-				}
+				pWrite(w, mq)
+				pWriteString(w, "{")
 			}
 			mediaQueries = mediaQueries[:0]
 
 			// now write the selector itself
-			if _, err := w.Write(selectorBytes); err != nil {
-				return errors.WithStack(err)
-			}
+			pWrite(w, selectorBytes)
 		} else {
 			a.log.Printf("Excluding selector: %s\n", scratch.String())
 		}
-
-		return nil
 	}
 
 	excluding := false
-	//TODO: AtRules need special handling?
 outer:
 	for {
 		gt, _, data := p.Next()
@@ -223,9 +238,7 @@ outer:
 
 		switch gt {
 		default:
-			if _, err := w.Write(data); err != nil {
-				return errors.WithStack(err)
-			}
+			pWrite(w, data)
 		case css.ErrorGrammar:
 			err := p.Err()
 			if err == io.EOF {
@@ -233,13 +246,9 @@ outer:
 			}
 			return errors.WithStack(err)
 		case css.QualifiedRuleGrammar:
-			if err := processSelector(); err != nil {
-				return err
-			}
+			processSelector()
 		case css.BeginRulesetGrammar:
-			if err := processSelector(); err != nil {
-				return err
-			}
+			processSelector()
 
 			// if we haven't included any so far, we're excluding the entire ruleset
 			if !selectorIncluded {
@@ -248,27 +257,17 @@ outer:
 			}
 
 			// otherwise we just began the ruleset
-			if _, err := io.WriteString(w, "{"); err != nil {
-				return errors.WithStack(err)
-			}
+			pWriteString(w, "{")
 
 			// reset
 			selectorIncluded = false
 		case css.DeclarationGrammar:
-			if _, err := w.Write(data); err != nil {
-				return errors.WithStack(err)
-			}
-			if _, err := io.WriteString(w, ":"); err != nil {
-				return errors.WithStack(err)
-			}
+			pWrite(w, data)
+			pWriteString(w, ":")
 			for _, val := range p.Values() {
-				if _, err := w.Write(val.Data); err != nil {
-					return errors.WithStack(err)
-				}
+				pWrite(w, val.Data)
 			}
-			if _, err := io.WriteString(w, ";"); err != nil {
-				return errors.WithStack(err)
-			}
+			pWriteString(w, ";")
 		case css.CommentGrammar:
 			continue outer
 		case css.AtRuleGrammar, css.BeginAtRuleGrammar:
@@ -291,9 +290,7 @@ outer:
 				mediaQueries = mediaQueries[:len(mediaQueries)-1]
 			} else {
 				// we already wrote the query, so write a corresponding close
-				if _, err := io.WriteString(w, "}"); err != nil {
-					return errors.WithStack(err)
-				}
+				pWriteString(w, "}")
 			}
 		}
 	}

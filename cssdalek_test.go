@@ -2,13 +2,16 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"log"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/daaku/cssdalek/internal/cssselector"
 	"github.com/daaku/ensure"
+	"github.com/pkg/errors"
 )
 
 func TestCSSProcessor(t *testing.T) {
@@ -21,7 +24,7 @@ func TestCSSProcessor(t *testing.T) {
 			ensure.Nil(t, err)
 			parts := bytes.SplitN(contents, []byte("\n--\n"), 3)
 			ensure.DeepEqual(t, len(parts), 3)
-			var a = app{log: log.New(ioutil.Discard, "", 0)}
+			a := app{log: log.New(ioutil.Discard, "", 0)}
 			ensure.Nil(t, a.htmlProcessor(bytes.NewReader(parts[0])))
 			var actual bytes.Buffer
 			ensure.Nil(t, a.cssProcessor(bytes.NewReader(parts[1]), &actual))
@@ -35,4 +38,15 @@ func TestCSSProcessor(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCSSProcessorWriterError(t *testing.T) {
+	a := app{
+		log:       log.New(ioutil.Discard, "", 0),
+		seenNodes: []cssselector.Selector{{Tag: "a"}},
+	}
+	pr, pw := io.Pipe()
+	pr.Close()
+	err := a.cssProcessor(strings.NewReader(`a{color:red}`), pw)
+	ensure.True(t, errors.Is(err, io.ErrClosedPipe))
 }
