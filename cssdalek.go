@@ -182,11 +182,9 @@ func (a *app) cssProcessor(r io.Reader, w io.Writer) (err error) {
 	}()
 
 	p := css.NewParser(r, false)
-
 	var scratch bytes.Buffer
-	selectorIncluded := false
-
 	var mediaQueries [][]byte
+	selectorIncluded := false
 
 	processSelector := func() {
 		scratch.Reset()
