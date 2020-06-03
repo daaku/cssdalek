@@ -170,6 +170,163 @@ func pWrite(w io.Writer, b []byte) {
 	}
 }
 
+type cssProcessor struct {
+	app              *app
+	parser           *css.Parser
+	data             []byte
+	out              io.Writer
+	scratch          bytes.Buffer
+	mediaQueries     [][]byte
+	selectorIncluded bool
+}
+
+type next func() next
+
+func (c *cssProcessor) run() {
+	next := c.outer
+	for {
+		if next == nil {
+			break
+		}
+		next = next()
+	}
+}
+
+func (c *cssProcessor) excludeRuleset() next {
+	for {
+		gt, _, _ := c.parser.Next()
+		if gt == css.EndRulesetGrammar {
+			return c.outer
+		}
+	}
+}
+
+func (c *cssProcessor) error() next {
+	err := c.parser.Err()
+	if err == io.EOF {
+		return nil
+	}
+	panic(panicError{errors.WithStack(err)})
+}
+
+func (c *cssProcessor) selector() next {
+	c.scratch.Reset()
+	for _, val := range c.parser.Values() {
+		c.scratch.Write(val.Data)
+	}
+
+	selectorBytes := c.scratch.Bytes()
+	chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
+	if err != nil {
+		panic(panicError{err})
+	}
+
+	include := c.app.includeSelector(chain)
+	if include {
+		// included, and we need to write a comma since we already wrote one
+		if c.selectorIncluded {
+			pWriteString(c.out, ",")
+		}
+		c.selectorIncluded = true
+
+		// write all pending media queries, if any since we're including something
+		// contained within
+		for _, mq := range c.mediaQueries {
+			pWrite(c.out, mq)
+			pWriteString(c.out, "{")
+		}
+		c.mediaQueries = c.mediaQueries[:0]
+
+		// now write the selector itself
+		pWrite(c.out, selectorBytes)
+	} else {
+		c.app.log.Printf("Excluding selector: %s\n", c.scratch.String())
+	}
+
+	return c.outer
+}
+
+func (c *cssProcessor) beginRuleset() next {
+	_ = c.selector()
+
+	// if we haven't included any so far, we're excluding the entire ruleset
+	if !c.selectorIncluded {
+		return c.excludeRuleset
+	}
+
+	// otherwise we just began the ruleset
+	pWriteString(c.out, "{")
+
+	// reset
+	c.selectorIncluded = false
+	return c.outer
+}
+
+func (c *cssProcessor) decl() next {
+	pWrite(c.out, c.data)
+	pWriteString(c.out, ":")
+	for _, val := range c.parser.Values() {
+		pWrite(c.out, val.Data)
+	}
+	pWriteString(c.out, ";")
+	return c.outer
+}
+
+func (c *cssProcessor) beginAtMedia() next {
+	c.scratch.Reset()
+	c.scratch.Write(c.data)
+	for _, val := range c.parser.Values() {
+		c.scratch.Write(val.Data)
+	}
+	query := make([]byte, c.scratch.Len())
+	copy(query, c.scratch.Bytes())
+	c.mediaQueries = append(c.mediaQueries, query)
+	return c.outer
+}
+
+func (c *cssProcessor) beginAtRule() next {
+	if bytes.EqualFold(c.data, atMedia) {
+		return c.beginAtMedia
+	}
+	panic(fmt.Sprintf("unimplemented: %s", c.data))
+}
+
+func (c *cssProcessor) endAtRule() next {
+	if len(c.mediaQueries) > 0 {
+		// we did not write this media query, so throw it away and don't write a
+		// closing }
+		c.mediaQueries = c.mediaQueries[:len(c.mediaQueries)-1]
+	} else {
+		// we already wrote the query, so write a corresponding close
+		pWriteString(c.out, "}")
+	}
+	return c.outer
+}
+
+func (c *cssProcessor) outer() next {
+	gt, _, data := c.parser.Next()
+	c.data = data
+	switch gt {
+	default:
+		pWrite(c.out, data)
+		return c.outer
+	case css.ErrorGrammar:
+		return c.error
+	case css.QualifiedRuleGrammar:
+		return c.selector
+	case css.BeginRulesetGrammar:
+		return c.beginRuleset
+	case css.DeclarationGrammar:
+		return c.decl
+	case css.CommentGrammar:
+		return c.outer
+	case css.AtRuleGrammar, css.BeginAtRuleGrammar:
+		return c.beginAtRule
+	case css.EndAtRuleGrammar:
+		return c.endAtRule
+	}
+}
+
 func (a *app) cssProcessor(r io.Reader, w io.Writer) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -180,118 +337,11 @@ func (a *app) cssProcessor(r io.Reader, w io.Writer) (err error) {
 			panic(r)
 		}
 	}()
-
-	p := css.NewParser(r, false)
-	var scratch bytes.Buffer
-	var mediaQueries [][]byte
-	selectorIncluded := false
-
-	processSelector := func() {
-		scratch.Reset()
-		for _, val := range p.Values() {
-			scratch.Write(val.Data)
-		}
-
-		selectorBytes := scratch.Bytes()
-		chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
-		if err != nil {
-			panic(panicError{err})
-		}
-
-		include := a.includeSelector(chain)
-		if include {
-			// included, and we need to write a comma since we already wrote one
-			if selectorIncluded {
-				pWriteString(w, ",")
-			}
-			selectorIncluded = true
-
-			// write all pending media queries, if any since we're including something
-			// contained within
-			for _, mq := range mediaQueries {
-				pWrite(w, mq)
-				pWriteString(w, "{")
-			}
-			mediaQueries = mediaQueries[:0]
-
-			// now write the selector itself
-			pWrite(w, selectorBytes)
-		} else {
-			a.log.Printf("Excluding selector: %s\n", scratch.String())
-		}
-	}
-
-	excluding := false
-outer:
-	for {
-		gt, _, data := p.Next()
-
-		// if skipping, keep skipping until the end
-		if excluding {
-			if gt == css.EndRulesetGrammar {
-				excluding = false
-			}
-			continue outer
-		}
-
-		switch gt {
-		default:
-			pWrite(w, data)
-		case css.ErrorGrammar:
-			err := p.Err()
-			if err == io.EOF {
-				break outer
-			}
-			return errors.WithStack(err)
-		case css.QualifiedRuleGrammar:
-			processSelector()
-		case css.BeginRulesetGrammar:
-			processSelector()
-
-			// if we haven't included any so far, we're excluding the entire ruleset
-			if !selectorIncluded {
-				excluding = true
-				continue outer
-			}
-
-			// otherwise we just began the ruleset
-			pWriteString(w, "{")
-
-			// reset
-			selectorIncluded = false
-		case css.DeclarationGrammar:
-			pWrite(w, data)
-			pWriteString(w, ":")
-			for _, val := range p.Values() {
-				pWrite(w, val.Data)
-			}
-			pWriteString(w, ";")
-		case css.CommentGrammar:
-			continue outer
-		case css.AtRuleGrammar, css.BeginAtRuleGrammar:
-			if bytes.EqualFold(data, atMedia) {
-				scratch.Reset()
-				scratch.Write(data)
-				for _, val := range p.Values() {
-					scratch.Write(val.Data)
-				}
-				query := make([]byte, scratch.Len())
-				copy(query, scratch.Bytes())
-				mediaQueries = append(mediaQueries, query)
-				continue outer
-			}
-			panic(fmt.Sprintf("unimplemented: %s", data))
-		case css.EndAtRuleGrammar:
-			if len(mediaQueries) > 0 {
-				// we did not write this media query, so throw it away and don't write a
-				// closing }
-				mediaQueries = mediaQueries[:len(mediaQueries)-1]
-			} else {
-				// we already wrote the query, so write a corresponding close
-				pWriteString(w, "}")
-			}
-		}
-	}
+	(&cssProcessor{
+		app:    a,
+		out:    w,
+		parser: css.NewParser(r, false),
+	}).run()
 	return nil
 }
 
