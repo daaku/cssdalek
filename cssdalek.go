@@ -152,7 +152,10 @@ func (a *app) cssFileProcessor(filename string) error {
 	return errors.WithStack(bw.Flush())
 }
 
-var atMedia = []byte("@media")
+var (
+	atMedia    = []byte("@media")
+	atFontFace = []byte("@font-face")
+)
 
 type panicError struct {
 	e error
@@ -178,6 +181,7 @@ type cssProcessor struct {
 	scratch          bytes.Buffer
 	mediaQueries     [][]byte
 	selectorIncluded bool
+	inFontFace       bool
 }
 
 type next func() next
@@ -284,14 +288,33 @@ func (c *cssProcessor) beginAtMedia() next {
 	return c.outer
 }
 
+func (c *cssProcessor) beginAtFontFace() next {
+	pWrite(c.out, c.data)
+	for _, val := range c.parser.Values() {
+		pWrite(c.out, val.Data)
+	}
+	pWriteString(c.out, "{")
+	c.inFontFace = true
+	return c.outer
+}
+
 func (c *cssProcessor) beginAtRule() next {
 	if bytes.EqualFold(c.data, atMedia) {
 		return c.beginAtMedia
+	}
+	if bytes.EqualFold(c.data, atFontFace) {
+		return c.beginAtFontFace
 	}
 	panic(fmt.Sprintf("unimplemented: %s", c.data))
 }
 
 func (c *cssProcessor) endAtRule() next {
+	if c.inFontFace {
+		c.inFontFace = false
+		pWriteString(c.out, "}")
+		return c.outer
+	}
+
 	if len(c.mediaQueries) > 0 {
 		// we did not write this media query, so throw it away and don't write a
 		// closing }

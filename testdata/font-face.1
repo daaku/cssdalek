@@ -1,0 +1,62 @@
+<a class="foo-bar"></a>
+<a class="foo-bar-2"></a>
+<a class="baz"></a>
+--
+@font-face {
+  font-family: 'Foo Bar';
+  font-style: normal;
+  src: url('/font/FooBar.eot') format('eot'), url('../font/FooBar.otf?baz=1') format('opentype');
+}
+
+@font-face {
+  font-family: Baz;
+  font-weight: 600;
+  src: url('/font/Baz Baz.eot') format('eot'), url('../font/Baz.otf?baz=1') format('opentype');
+}
+
+@font-face {
+  font-family: 'Useless';
+  font-style: normal;
+}
+
+.foo-bar {
+  color: red;
+  font-family: 'Foo Bar';
+}
+
+.foo-bar-2 {
+  color: red;
+  font-family: Foo Bar, sans;
+}
+
+.baz {
+  color: red;
+  font-family: Baz, serif;
+}
+--
+@font-face{
+font-family:'Foo Bar';
+font-style:normal;
+src:url('/font/FooBar.eot') format('eot'),url('../font/FooBar.otf?baz=1') format('opentype');
+}
+@font-face{
+font-family:Baz;
+font-weight:600;
+src:url('/font/Baz Baz.eot') format('eot'),url('../font/Baz.otf?baz=1') format('opentype');
+}
+@font-face{
+font-family:'Useless';
+font-style:normal;
+}
+.foo-bar{
+color:red;
+font-family:'Foo Bar';
+}
+.foo-bar-2{
+color:red;
+font-family:Foo Bar,sans;
+}
+.baz{
+color:red;
+font-family:Baz,serif;
+}
