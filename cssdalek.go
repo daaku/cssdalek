@@ -374,7 +374,6 @@ func (a *app) run() error {
 			return err
 		}
 	}
-	fmt.Printf("%+v\n", a.seenNodes)
 	for _, glob := range a.CSSGlobs {
 		if err := a.startGlobJobs(glob, a.cssFileProcessor); err != nil {
 			return err
