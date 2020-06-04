@@ -50,6 +50,7 @@ This is probably not production ready, and you probably want to use
 
 ## TODO
 
+- [ ] 2-pass over CSS to first collect font-face and keyframes usage
 - [ ] Attribute Selectors
 - [ ] Font Face
 - [ ] Key Frames

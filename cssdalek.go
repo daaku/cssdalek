@@ -227,12 +227,6 @@ func (c *cssProcessor) selector() next {
 
 	include := c.app.includeSelector(chain)
 	if include {
-		// included, and we need to write a comma since we already wrote one
-		if c.selectorIncluded {
-			pWriteString(c.out, ",")
-		}
-		c.selectorIncluded = true
-
 		// write all pending media queries, if any since we're including something
 		// contained within
 		for _, mq := range c.mediaQueries {
@@ -240,6 +234,12 @@ func (c *cssProcessor) selector() next {
 			pWriteString(c.out, "{")
 		}
 		c.mediaQueries = c.mediaQueries[:0]
+
+		// included, and we need to write a comma since we already wrote one
+		if c.selectorIncluded {
+			pWriteString(c.out, ",")
+		}
+		c.selectorIncluded = true
 
 		// now write the selector itself
 		pWrite(c.out, selectorBytes)
