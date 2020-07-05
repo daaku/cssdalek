@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -10,19 +9,12 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/daaku/cssdalek/internal/cssselector"
+	"github.com/daaku/cssdalek/internal/csspurge"
 	"github.com/daaku/cssdalek/internal/cssusage"
 	"github.com/daaku/cssdalek/internal/htmlusage"
-	"github.com/daaku/cssdalek/internal/pa"
 
 	"github.com/jpillora/opts"
 	"github.com/pkg/errors"
-	"github.com/tdewolff/parse/v2/css"
-)
-
-var (
-	atMediaB    = []byte("@media")
-	atFontFaceB = []byte("@font-face")
 )
 
 type app struct {
@@ -50,35 +42,6 @@ func (a *app) startGlobJobs(glob string, processor func(string) error) error {
 		}
 	}
 	return nil
-}
-
-func (a *app) includeSelector(chain []*cssselector.Selector) bool {
-	//TODO: fixme explicit Includes
-	/*
-		for _, other := range a.Include {
-			if selector == other {
-				return true
-			}
-		}
-	*/
-	pending := len(chain)
-	found := make([]bool, pending)
-	for _, node := range a.htmlInfo.Seen {
-		for i, selector := range chain {
-			if found[i] {
-				continue
-			}
-			if selector.Matches(&node) {
-				pending--
-				if pending == 0 {
-					return true
-				}
-
-				found[i] = true
-			}
-		}
-	}
-	return false
 }
 
 func (a *app) htmlFileProcessor(filename string) error {
@@ -146,177 +109,8 @@ func (a *app) cssUsageExtractor(r io.Reader) error {
 	return nil
 }
 
-type cssProcessor struct {
-	app              *app
-	parser           *css.Parser
-	data             []byte
-	out              io.Writer
-	scratch          bytes.Buffer
-	mediaQueries     [][]byte
-	selectorIncluded bool
-	inFontFace       bool
-}
-
-func (c *cssProcessor) excludeRuleset() pa.Next {
-	for {
-		gt, _, _ := c.parser.Next()
-		if gt == css.EndRulesetGrammar {
-			return c.outer
-		}
-	}
-}
-
-func (c *cssProcessor) error() pa.Next {
-	err := c.parser.Err()
-	if err == io.EOF {
-		return nil
-	}
-	panic(errors.WithStack(err))
-}
-
-func (c *cssProcessor) selector() pa.Next {
-	c.scratch.Reset()
-	for _, val := range c.parser.Values() {
-		c.scratch.Write(val.Data)
-	}
-
-	selectorBytes := c.scratch.Bytes()
-	chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
-	if err != nil {
-		panic(err)
-	}
-
-	include := c.app.includeSelector(chain)
-	if include {
-		// write all pending media queries, if any since we're including something
-		// contained within
-		for _, mq := range c.mediaQueries {
-			pa.Write(c.out, mq)
-			pa.WriteString(c.out, "{")
-		}
-		c.mediaQueries = c.mediaQueries[:0]
-
-		// included, and we need to write a comma since we already wrote one
-		if c.selectorIncluded {
-			pa.WriteString(c.out, ",")
-		}
-		c.selectorIncluded = true
-
-		// now write the selector itself
-		pa.Write(c.out, selectorBytes)
-	} else {
-		c.app.log.Printf("Excluding selector: %s\n", c.scratch.String())
-	}
-
-	return c.outer
-}
-
-func (c *cssProcessor) beginRuleset() pa.Next {
-	_ = c.selector()
-
-	// if we haven't included any so far, we're excluding the entire ruleset
-	if !c.selectorIncluded {
-		return c.excludeRuleset
-	}
-
-	// otherwise we just began the ruleset
-	pa.WriteString(c.out, "{")
-
-	// reset
-	c.selectorIncluded = false
-	return c.outer
-}
-
-func (c *cssProcessor) decl() pa.Next {
-	pa.Write(c.out, c.data)
-	pa.WriteString(c.out, ":")
-	for _, val := range c.parser.Values() {
-		pa.Write(c.out, val.Data)
-	}
-	pa.WriteString(c.out, ";")
-	return c.outer
-}
-
-func (c *cssProcessor) beginAtMedia() pa.Next {
-	c.scratch.Reset()
-	c.scratch.Write(c.data)
-	for _, val := range c.parser.Values() {
-		c.scratch.Write(val.Data)
-	}
-	query := make([]byte, c.scratch.Len())
-	copy(query, c.scratch.Bytes())
-	c.mediaQueries = append(c.mediaQueries, query)
-	return c.outer
-}
-
-func (c *cssProcessor) beginAtFontFace() pa.Next {
-	pa.Write(c.out, c.data)
-	for _, val := range c.parser.Values() {
-		pa.Write(c.out, val.Data)
-	}
-	pa.WriteString(c.out, "{")
-	c.inFontFace = true
-	return c.outer
-}
-
-func (c *cssProcessor) beginAtRule() pa.Next {
-	if bytes.EqualFold(c.data, atMediaB) {
-		return c.beginAtMedia
-	}
-	if bytes.EqualFold(c.data, atFontFaceB) {
-		return c.beginAtFontFace
-	}
-	panic(fmt.Sprintf("unimplemented: %s", c.data))
-}
-
-func (c *cssProcessor) endAtRule() pa.Next {
-	if c.inFontFace {
-		c.inFontFace = false
-		pa.WriteString(c.out, "}")
-		return c.outer
-	}
-
-	if len(c.mediaQueries) > 0 {
-		// we did not write this media query, so throw it away and don't write a
-		// closing }
-		c.mediaQueries = c.mediaQueries[:len(c.mediaQueries)-1]
-	} else {
-		// we already wrote the query, so write a corresponding close
-		pa.WriteString(c.out, "}")
-	}
-	return c.outer
-}
-
-func (c *cssProcessor) outer() pa.Next {
-	gt, _, data := c.parser.Next()
-	c.data = data
-	switch gt {
-	default:
-		pa.Write(c.out, data)
-		return c.outer
-	case css.ErrorGrammar:
-		return c.error
-	case css.QualifiedRuleGrammar:
-		return c.selector
-	case css.BeginRulesetGrammar:
-		return c.beginRuleset
-	case css.DeclarationGrammar:
-		return c.decl
-	case css.CommentGrammar:
-		return c.outer
-	case css.AtRuleGrammar, css.BeginAtRuleGrammar:
-		return c.beginAtRule
-	case css.EndAtRuleGrammar:
-		return c.endAtRule
-	}
-}
-
 func (a *app) cssProcessor(r io.Reader, w io.Writer) error {
-	return pa.Finish((&cssProcessor{
-		app:    a,
-		out:    w,
-		parser: css.NewParser(r, false),
-	}).outer)
+	return csspurge.Purge(a.htmlInfo, a.cssInfo, a.log, r, w)
 }
 
 func (a *app) run() error {

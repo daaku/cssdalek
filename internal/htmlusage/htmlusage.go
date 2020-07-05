@@ -23,6 +23,35 @@ func (i *Info) Merge(other *Info) {
 	i.Seen = append(i.Seen, other.Seen...)
 }
 
+func (i *Info) Includes(chain []*cssselector.Selector) bool {
+	//TODO: fixme explicit Includes
+	/*
+		for _, other := range a.Include {
+			if selector == other {
+				return true
+			}
+		}
+	*/
+	pending := len(chain)
+	found := make([]bool, pending)
+	for _, node := range i.Seen {
+		for i, selector := range chain {
+			if found[i] {
+				continue
+			}
+			if selector.Matches(&node) {
+				pending--
+				if pending == 0 {
+					return true
+				}
+
+				found[i] = true
+			}
+		}
+	}
+	return false
+}
+
 func Extract(r io.Reader) (*Info, error) {
 	l := html.NewLexer(r)
 	var seenNodes []cssselector.Selector
