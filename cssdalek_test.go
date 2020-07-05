@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/daaku/cssdalek/internal/cssselector"
+	"github.com/daaku/cssdalek/internal/htmlusage"
 	"github.com/daaku/ensure"
 	"github.com/pkg/errors"
 )
@@ -39,7 +40,7 @@ func TestCore(t *testing.T) {
 				ensure.DeepEqual(t,
 					strings.TrimSpace(actual.String()),
 					expected,
-					"seen nodes", a.seenNodes,
+					"seen nodes", a.htmlInfo.Seen,
 				)
 			}
 		})
@@ -48,8 +49,10 @@ func TestCore(t *testing.T) {
 
 func TestWriterError(t *testing.T) {
 	a := app{
-		log:       log.New(ioutil.Discard, "", 0),
-		seenNodes: []cssselector.Selector{{Tag: "a"}},
+		log: log.New(ioutil.Discard, "", 0),
+		htmlInfo: &htmlusage.Info{
+			Seen: []cssselector.Selector{{Tag: "a"}},
+		},
 	}
 	pr, pw := io.Pipe()
 	pr.Close()

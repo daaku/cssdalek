@@ -12,17 +12,15 @@ import (
 
 	"github.com/daaku/cssdalek/internal/cssselector"
 	"github.com/daaku/cssdalek/internal/cssusage"
+	"github.com/daaku/cssdalek/internal/htmlusage"
 	"github.com/daaku/cssdalek/internal/pa"
 
 	"github.com/jpillora/opts"
 	"github.com/pkg/errors"
 	"github.com/tdewolff/parse/v2/css"
-	"github.com/tdewolff/parse/v2/html"
 )
 
 var (
-	idB         = []byte("id")
-	classB      = []byte("class")
 	atMediaB    = []byte("@media")
 	atFontFaceB = []byte("@font-face")
 )
@@ -32,8 +30,8 @@ type app struct {
 	HTMLGlobs []string `opts:"name=html,short=h,help=Globs targeting HTML files"`
 	Include   []string `opts:"short=i,help=Selectors to always include"`
 
-	seenNodesMu sync.Mutex
-	seenNodes   []cssselector.Selector
+	htmlInfoMu sync.Mutex
+	htmlInfo   *htmlusage.Info
 
 	cssInfoMu sync.Mutex
 	cssInfo   *cssusage.Info
@@ -65,7 +63,7 @@ func (a *app) includeSelector(chain []*cssselector.Selector) bool {
 	*/
 	pending := len(chain)
 	found := make([]bool, pending)
-	for _, node := range a.seenNodes {
+	for _, node := range a.htmlInfo.Seen {
 		for i, selector := range chain {
 			if found[i] {
 				continue
@@ -93,56 +91,18 @@ func (a *app) htmlFileProcessor(filename string) error {
 }
 
 func (a *app) htmlProcessor(r io.Reader) error {
-	l := html.NewLexer(r)
-	var seenNodes []cssselector.Selector
-docloop:
-	for {
-		tt, _ := l.Next()
-		switch tt {
-		case html.ErrorToken:
-			err := l.Err()
-			if err == io.EOF {
-				break docloop
-			}
-			return errors.WithMessagef(err, "at offset %d", l.Offset())
-		case html.StartTagToken:
-			tag := cssselector.Selector{
-				Tag: string(l.Text()),
-			}
-		tagloop:
-			for {
-				ttAttr, _ := l.Next()
-				switch ttAttr {
-				default:
-					return errors.Errorf("unexpected token type %s at offset %d", ttAttr, l.Offset())
-				case html.AttributeToken:
-					name := l.Text()
-					if bytes.EqualFold(name, idB) {
-						tag.ID = string(bytes.Trim(l.AttrVal(), `"'`))
-					} else if bytes.EqualFold(name, classB) {
-						classes := bytes.Fields(l.AttrVal())
-						tag.Class = make(map[string]struct{})
-						for _, c := range classes {
-							c := bytes.Trim(c, `"'`)
-							tag.Class[string(c)] = struct{}{}
-						}
-					} else {
-						if tag.Attr == nil {
-							tag.Attr = make(map[string]struct{})
-						}
-						tag.Attr[string(name)] = struct{}{}
-					}
-				case html.StartTagCloseToken:
-					break tagloop
-				}
-			}
-			seenNodes = append(seenNodes, tag)
-		}
+	info, err := htmlusage.Extract(r)
+	if err != nil {
+		return err
 	}
 
-	a.seenNodesMu.Lock()
-	a.seenNodes = append(a.seenNodes, seenNodes...)
-	a.seenNodesMu.Unlock()
+	a.htmlInfoMu.Lock()
+	if a.htmlInfo == nil {
+		a.htmlInfo = info
+	} else {
+		a.htmlInfo.Merge(info)
+	}
+	a.htmlInfoMu.Unlock()
 
 	return nil
 }
