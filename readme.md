@@ -51,9 +51,13 @@ This is probably not production ready, and you probably want to use
 ## TODO
 
 - [ ] 2-pass over CSS to first collect font-face and keyframes usage
+- [ ] Make CSS whitespace irrelevant in tests
 - [ ] Attribute Selectors
 - [ ] Font Face
 - [ ] Key Frames
 - [ ] Tables
 - [ ] Psuedo Elements
 - [ ] Hook up a generic parser for random file types
+- [ ] 100% test coverage, or something close to that
+- [ ] Fuzz testing
+- [ ] Test various invalid HTML/CSS scenarios

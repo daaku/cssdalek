@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -14,7 +15,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func TestCSSProcessor(t *testing.T) {
+func TestCore(t *testing.T) {
 	filenames, err := filepath.Glob("testdata/*.1")
 	ensure.Nil(t, err)
 	for _, filename := range filenames {
@@ -24,8 +25,13 @@ func TestCSSProcessor(t *testing.T) {
 			ensure.Nil(t, err)
 			parts := bytes.SplitN(contents, []byte("\n--\n"), 3)
 			ensure.DeepEqual(t, len(parts), 3)
-			a := app{log: log.New(ioutil.Discard, "", 0)}
+			logger := log.New(ioutil.Discard, "", 0)
+			if testing.Verbose() {
+				logger = log.New(os.Stdout, "", 0)
+			}
+			a := app{log: logger}
 			ensure.Nil(t, a.htmlProcessor(bytes.NewReader(parts[0])))
+			ensure.Nil(t, a.cssUsageExtractor(bytes.NewReader(parts[1])))
 			var actual bytes.Buffer
 			ensure.Nil(t, a.cssProcessor(bytes.NewReader(parts[1]), &actual))
 			expected := strings.Replace(strings.TrimSpace(string(parts[2])), "\n", "", -1)
@@ -40,7 +46,7 @@ func TestCSSProcessor(t *testing.T) {
 	}
 }
 
-func TestCSSProcessorWriterError(t *testing.T) {
+func TestWriterError(t *testing.T) {
 	a := app{
 		log:       log.New(ioutil.Discard, "", 0),
 		seenNodes: []cssselector.Selector{{Tag: "a"}},
