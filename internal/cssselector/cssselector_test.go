@@ -2,6 +2,7 @@ package cssselector
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -102,6 +103,15 @@ func TestSelectorMatchTrue(t *testing.T) {
 				ID:    "b",
 			},
 		},
+		{
+			"just attr",
+			Selector{
+				Attr: set("a"),
+			},
+			Selector{
+				Attr: set("a"),
+			},
+		},
 	}
 	for _, c := range cases {
 		c := c
@@ -142,6 +152,15 @@ func TestSelectorMatchFalse(t *testing.T) {
 			},
 			Selector{
 				Class: set("b"),
+			},
+		},
+		{
+			"attr",
+			Selector{
+				Attr: set("a"),
+			},
+			Selector{
+				Attr: set("b"),
 			},
 		},
 	}
@@ -220,6 +239,14 @@ func TestValidSelectors(t *testing.T) {
 				{Class: set("second-class")},
 			},
 		},
+		{
+			"immediately preceed without whitespace",
+			".first-class+.second-class",
+			Chain{
+				{Class: set("first-class")},
+				{Class: set("second-class")},
+			},
+		},
 	}
 	for _, c := range cases {
 		c := c
@@ -227,6 +254,37 @@ func TestValidSelectors(t *testing.T) {
 			actual, err := Parse(strings.NewReader(c.text))
 			ensure.Nil(t, err)
 			ensure.DeepEqual(t, actual, c.chain)
+		})
+	}
+}
+
+func TestInvalidSelector(t *testing.T) {
+	cases := []struct {
+		name string
+		text string
+		re   *regexp.Regexp
+	}{
+		{
+			"misplaced hash",
+			"a #",
+			regexp.MustCompile("unexpected token"),
+		},
+		{
+			"unexpected open brace",
+			"a {",
+			regexp.MustCompile("unexpected token"),
+		},
+		{
+			"unexpected dot hash",
+			"a .#",
+			regexp.MustCompile("unexpected token"),
+		},
+	}
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			_, err := Parse(strings.NewReader(c.text))
+			ensure.Err(t, err, c.re)
 		})
 	}
 }
