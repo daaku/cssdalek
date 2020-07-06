@@ -1,7 +1,10 @@
 package cssselector
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -186,6 +189,13 @@ func TestValidSelectors(t *testing.T) {
 			},
 		},
 		{
+			"hash - lowercased",
+			"#first-ID",
+			Chain{
+				{ID: "first-id"},
+			},
+		},
+		{
 			"descendant hash",
 			"#first-id #second-id",
 			Chain{
@@ -196,6 +206,13 @@ func TestValidSelectors(t *testing.T) {
 		{
 			"class",
 			".first-class",
+			Chain{
+				{Class: set("first-class")},
+			},
+		},
+		{
+			"class - lowercased",
+			".first-CLASS",
 			Chain{
 				{Class: set("first-class")},
 			},
@@ -287,4 +304,14 @@ func TestInvalidSelector(t *testing.T) {
 			ensure.Err(t, err, c.re)
 		})
 	}
+}
+
+func TestReaderError(t *testing.T) {
+	f, err := ioutil.TempFile("", "cssdalek-cssselector-")
+	ensure.Nil(t, err)
+	f.Close()
+	os.Remove(f.Name())
+
+	_, err = Parse(f)
+	ensure.True(t, errors.Is(err, os.ErrClosed))
 }

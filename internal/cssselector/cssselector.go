@@ -4,6 +4,7 @@
 package cssselector
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/pkg/errors"
@@ -69,7 +70,7 @@ outer:
 			}
 			return nil, errors.WithStack(err)
 		case css.HashToken:
-			s.ID = string(data[1:]) // drop leading #
+			s.ID = string(bytes.ToLower(data[1:])) // drop leading #
 		case css.DelimToken:
 			if len(data) != 1 {
 				return nil, errors.Errorf(
@@ -91,7 +92,7 @@ outer:
 				if s.Class == nil {
 					s.Class = make(map[string]struct{})
 				}
-				s.Class[string(next)] = struct{}{}
+				s.Class[string(bytes.ToLower(next))] = struct{}{}
 			case '>', '+', '~':
 				if !s.IsZero() {
 					chain = append(chain, s)
@@ -99,7 +100,7 @@ outer:
 				}
 			}
 		case css.IdentToken:
-			s.Tag = string(data)
+			s.Tag = string(bytes.ToLower(data))
 		case css.WhitespaceToken:
 			if !s.IsZero() {
 				chain = append(chain, s)
