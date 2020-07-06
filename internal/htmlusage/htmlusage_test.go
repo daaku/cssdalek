@@ -31,8 +31,18 @@ func TestValid(t *testing.T) {
 			seen: seen(t, "a"),
 		},
 		{
+			name: "tag - lowercased",
+			html: `<A>`,
+			seen: seen(t, "a"),
+		},
+		{
 			name: "id",
 			html: `<a id="f">`,
+			seen: seen(t, "a#f"),
+		},
+		{
+			name: "id - lowercased",
+			html: `<A ID="F">`,
 			seen: seen(t, "a#f"),
 		},
 		{
@@ -41,8 +51,23 @@ func TestValid(t *testing.T) {
 			seen: seen(t, "a.f"),
 		},
 		{
+			name: "class - lowercased",
+			html: `<A CLASS="F">`,
+			seen: seen(t, "a.f"),
+		},
+		{
 			name: "attr",
 			html: `<a foo="bar">`,
+			seen: []cssselector.Selector{
+				{
+					Tag:  "a",
+					Attr: map[string]struct{}{"foo": {}},
+				},
+			},
+		},
+		{
+			name: "attr - lowercased",
+			html: `<A FOO="BAR">`,
 			seen: []cssselector.Selector{
 				{
 					Tag:  "a",

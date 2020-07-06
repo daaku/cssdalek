@@ -68,7 +68,7 @@ docloop:
 			return nil, errors.WithMessagef(err, "at offset %d", l.Offset())
 		case html.StartTagToken:
 			tag := cssselector.Selector{
-				Tag: string(l.Text()),
+				Tag: string(bytes.ToLower(l.Text())),
 			}
 		tagloop:
 			for {
@@ -79,19 +79,19 @@ docloop:
 				case html.AttributeToken:
 					name := l.Text()
 					if bytes.EqualFold(name, idB) {
-						tag.ID = string(bytes.Trim(l.AttrVal(), `"'`))
+						tag.ID = string(bytes.ToLower(bytes.Trim(l.AttrVal(), `"'`)))
 					} else if bytes.EqualFold(name, classB) {
 						classes := bytes.Fields(l.AttrVal())
 						tag.Class = make(map[string]struct{})
 						for _, c := range classes {
-							c := bytes.Trim(c, `"'`)
+							c := bytes.ToLower(bytes.Trim(c, `"'`))
 							tag.Class[string(c)] = struct{}{}
 						}
 					} else {
 						if tag.Attr == nil {
 							tag.Attr = make(map[string]struct{})
 						}
-						tag.Attr[string(name)] = struct{}{}
+						tag.Attr[string(bytes.ToLower(name))] = struct{}{}
 					}
 				case html.StartTagCloseToken:
 					break tagloop
