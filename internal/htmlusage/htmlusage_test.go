@@ -1,6 +1,10 @@
 package htmlusage
 
 import (
+	"errors"
+	"io/ioutil"
+	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -17,6 +21,18 @@ func seen(t testing.TB, selectors ...string) []cssselector.Selector {
 		parsed = append(parsed, p...)
 	}
 	return parsed
+}
+
+func TestInfoMerge(t *testing.T) {
+	i1 := Info{Seen: seen(t, "a")}
+	i2 := Info{Seen: seen(t, "b")}
+	i1.Merge(&i2)
+	ensure.DeepEqual(t, i1, Info{
+		Seen: []cssselector.Selector{
+			{Tag: "a"},
+			{Tag: "b"},
+		},
+	})
 }
 
 func TestValid(t *testing.T) {
@@ -84,4 +100,18 @@ func TestValid(t *testing.T) {
 			ensure.DeepEqual(t, info.Seen, c.seen)
 		})
 	}
+}
+
+func TestInvalidHTML(t *testing.T) {
+	_, err := Extract(strings.NewReader(`<a <!--`))
+	ensure.Err(t, err, regexp.MustCompile("unexpected token"))
+}
+
+func TestReaderError(t *testing.T) {
+	f, err := ioutil.TempFile("", "cssdalek-htmlusage-")
+	ensure.Nil(t, err)
+	f.Close()
+	os.Remove(f.Name())
+	_, err = Extract(f)
+	ensure.True(t, errors.Is(err, os.ErrClosed))
 }
