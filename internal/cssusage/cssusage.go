@@ -14,6 +14,8 @@ import (
 
 var (
 	fontFamilyB = []byte("font-family")
+	commaB      = []byte(",")
+	quotesS     = `"'`
 )
 
 type extractor struct {
@@ -86,6 +88,12 @@ func (c *extractor) endRuleset() pa.Next {
 	return c.outer
 }
 
+func (c *extractor) scrUnqStr() string {
+	s := string(bytes.Trim(c.scratch.Bytes(), quotesS))
+	c.scratch.Reset()
+	return s
+}
+
 func (c *extractor) decl() pa.Next {
 	// decl without selector means we're inside @font-face
 	if len(c.currentSelectors) == 0 {
@@ -93,8 +101,18 @@ func (c *extractor) decl() pa.Next {
 	}
 
 	if bytes.EqualFold(c.data, fontFamilyB) {
+		c.scratch.Reset()
 		for _, val := range c.parser.Values() {
-			c.currentFontFaces = append(c.currentFontFaces, string(bytes.Trim(val.Data, `"'`)))
+			if bytes.Equal(val.Data, commaB) {
+				if c.scratch.Len() != 0 {
+					c.currentFontFaces = append(c.currentFontFaces, c.scrUnqStr())
+				}
+				continue
+			}
+			c.scratch.Write(val.Data)
+		}
+		if c.scratch.Len() != 0 {
+			c.currentFontFaces = append(c.currentFontFaces, c.scrUnqStr())
 		}
 	}
 	return c.outer

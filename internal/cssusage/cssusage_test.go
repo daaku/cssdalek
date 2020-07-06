@@ -23,31 +23,36 @@ func TestFontFace(t *testing.T) {
 			css:   `a { font-family: "Sans"; }`,
 			faces: map[string][]string{"a": {"Sans"}},
 		},
-		// {
-		// 	name:  "invalid unquoted",
-		// 	css:   `a { font-family: Sans Serif; }`,
-		// 	faces: map[string][]string{"a": {"Sans Serif"}},
-		// },
+		{
+			name:  "invalid unquoted",
+			css:   `a { font-family: Sans Serif; }`,
+			faces: map[string][]string{"a": {"Sans Serif"}},
+		},
 		{
 			name:  "nested tags",
 			css:   `a i { font-family: Sans; }`,
 			faces: map[string][]string{"a i": {"Sans"}},
 		},
-		// {
-		// 	name:  "multiple families",
-		// 	css:   `a { font-family: Sans, Serif; }`,
-		// 	faces: map[string][]string{"a": {"Sans", "Serif"}},
-		// },
-		// {
-		// 	name:  "multiple families quoted",
-		// 	css:   `a { font-family: "Sans", "Serif"; }`,
-		// 	faces: map[string][]string{"a": {"Sans", "Serif"}},
-		// },
-		// {
-		// 	name:  "multiple families invalid unquoted",
-		// 	css:   `a { font-family: Sans Serif, Comic Sans; }`,
-		// 	faces: map[string][]string{"a": {"Sans Serif", "Comic Sans"}},
-		// },
+		{
+			name:  "multiple families",
+			css:   `a { font-family: Sans, Serif; }`,
+			faces: map[string][]string{"a": {"Sans", "Serif"}},
+		},
+		{
+			name:  "multiple families quoted",
+			css:   `a { font-family: "Sans", "Serif"; }`,
+			faces: map[string][]string{"a": {"Sans", "Serif"}},
+		},
+		{
+			name:  "multiple families invalid unquoted",
+			css:   `a { font-family: Sans Serif, Comic Sans; }`,
+			faces: map[string][]string{"a": {"Sans Serif", "Comic Sans"}},
+		},
+		{
+			name:  "multiple families invalid comma",
+			css:   `a { font-family: Sans, , Serif; }`,
+			faces: map[string][]string{"a": {"Sans", "Serif"}},
+		},
 	}
 
 	for _, c := range cases {
