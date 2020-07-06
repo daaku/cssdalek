@@ -1,11 +1,16 @@
 package cssusage
 
 import (
+	"io/ioutil"
+	"os"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/daaku/cssdalek/internal/cssselector"
+
 	"github.com/daaku/ensure"
+	"github.com/pkg/errors"
 )
 
 func TestInfoMerge(t *testing.T) {
@@ -109,6 +114,17 @@ func TestFontFace(t *testing.T) {
 				"Serif": {aC},
 			},
 		},
+		{
+			name: "multiple selectors",
+			css:  `a, a i { font-family: Sans; }`,
+			faces: map[string][]cssselector.Chain{
+				"Sans": {aC, aiC},
+			},
+		},
+		{
+			name: "at-rule is ignored",
+			css:  `@font-face { font-family: Foo; }`,
+		},
 	}
 
 	for _, c := range cases {
@@ -119,4 +135,19 @@ func TestFontFace(t *testing.T) {
 			ensure.DeepEqual(t, info.FontFace, c.faces)
 		})
 	}
+}
+
+func TestReaderError(t *testing.T) {
+	f, err := ioutil.TempFile("", "cssdalek-cssusage-")
+	ensure.Nil(t, err)
+	f.Close()
+	os.Remove(f.Name())
+	_, err = Extract(f)
+	ensure.True(t, errors.Is(err, os.ErrClosed))
+}
+
+func TestInvalidSelector(t *testing.T) {
+	const css = `a # { font-family: Sans; }`
+	_, err := Extract(strings.NewReader(css))
+	ensure.Err(t, err, regexp.MustCompile("unexpected token"))
 }

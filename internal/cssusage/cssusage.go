@@ -104,7 +104,7 @@ func (c *extractor) scrUnqStr() string {
 }
 
 func (c *extractor) decl() pa.Next {
-	// decl without selector means we're inside @font-face
+	// decl without selector means we're inside an @ rule
 	if len(c.currentSelectors) == 0 {
 		return c.outer
 	}
