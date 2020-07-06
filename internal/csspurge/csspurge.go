@@ -19,6 +19,8 @@ import (
 var (
 	atMediaB    = []byte("@media")
 	atFontFaceB = []byte("@font-face")
+	fontFamilyB = []byte("font-family")
+	quotesS     = `"'`
 )
 
 func Purge(h *htmlusage.Info, c *cssusage.Info, l *log.Logger, r io.Reader, w io.Writer) error {
@@ -39,10 +41,13 @@ type purger struct {
 	parser           *css.Parser
 	data             []byte
 	out              io.Writer
+	outSwap          io.Writer
 	scratch          bytes.Buffer
 	mediaQueries     [][]byte
 	selectorIncluded bool
 	inFontFace       bool
+	fontFaceRule     bytes.Buffer
+	fontFaceName     string
 }
 
 func (c *purger) excludeRuleset() pa.Next {
@@ -116,6 +121,16 @@ func (c *purger) beginRuleset() pa.Next {
 }
 
 func (c *purger) decl() pa.Next {
+	if c.inFontFace {
+		if bytes.EqualFold(c.data, fontFamilyB) {
+			c.scratch.Reset()
+			for _, val := range c.parser.Values() {
+				c.scratch.Write(val.Data)
+			}
+			c.fontFaceName = string(bytes.Trim(c.scratch.Bytes(), quotesS))
+		}
+	}
+
 	pa.Write(c.out, c.data)
 	pa.WriteString(c.out, ":")
 	for _, val := range c.parser.Values() {
@@ -138,12 +153,14 @@ func (c *purger) beginAtMedia() pa.Next {
 }
 
 func (c *purger) beginAtFontFace() pa.Next {
+	c.inFontFace = true
+	c.outSwap = c.out
+	c.out = &c.fontFaceRule
 	pa.Write(c.out, c.data)
 	for _, val := range c.parser.Values() {
 		pa.Write(c.out, val.Data)
 	}
 	pa.WriteString(c.out, "{")
-	c.inFontFace = true
 	return c.outer
 }
 
@@ -159,8 +176,22 @@ func (c *purger) beginAtRule() pa.Next {
 
 func (c *purger) endAtRule() pa.Next {
 	if c.inFontFace {
-		c.inFontFace = false
 		pa.WriteString(c.out, "}")
+
+		if selectors, found := c.cssInfo.FontFace[c.fontFaceName]; found {
+			for _, s := range selectors {
+				if c.htmlInfo.Includes(s) {
+					io.Copy(c.outSwap, &c.fontFaceRule)
+					break
+				}
+			}
+		}
+
+		c.inFontFace = false
+		c.fontFaceName = ""
+		c.fontFaceRule.Reset()
+		c.out = c.outSwap
+
 		return c.outer
 	}
 

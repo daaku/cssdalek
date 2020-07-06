@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/daaku/cssdalek/internal/cssselector"
+
 	"github.com/pkg/errors"
 	"github.com/tdewolff/parse/v2/html"
 )
@@ -23,7 +24,7 @@ func (i *Info) Merge(other *Info) {
 	i.Seen = append(i.Seen, other.Seen...)
 }
 
-func (i *Info) Includes(chain []*cssselector.Selector) bool {
+func (i *Info) Includes(chain cssselector.Chain) bool {
 	//TODO: fixme explicit Includes
 	/*
 		for _, other := range a.Include {

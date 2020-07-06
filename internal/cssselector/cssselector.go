@@ -45,7 +45,9 @@ func (s *Selector) Matches(node *Selector) bool {
 	return true
 }
 
-func Parse(selector io.Reader) ([]*Selector, error) {
+type Chain []*Selector
+
+func Parse(selector io.Reader) (Chain, error) {
 	l := css.NewLexer(selector)
 	s := &Selector{}
 	chain := make([]*Selector, 0, 1)

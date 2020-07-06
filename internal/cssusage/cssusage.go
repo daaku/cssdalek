@@ -5,7 +5,9 @@ package cssusage
 import (
 	"bytes"
 	"io"
+	"strings"
 
+	"github.com/daaku/cssdalek/internal/cssselector"
 	"github.com/daaku/cssdalek/internal/pa"
 
 	"github.com/pkg/errors"
@@ -26,11 +28,11 @@ type extractor struct {
 	scratch          bytes.Buffer
 
 	// map of font faces to selectors that use them
-	fontFace map[string][]string
+	fontFace map[string][]cssselector.Chain
 }
 
 type Info struct {
-	FontFace map[string][]string
+	FontFace map[string][]cssselector.Chain
 }
 
 func (i *Info) Merge(other *Info) {
@@ -69,16 +71,23 @@ func (c *extractor) selector() pa.Next {
 }
 
 func (c *extractor) endRuleset() pa.Next {
-	for _, selector := range c.currentSelectors {
+	for _, fontFace := range c.currentFontFaces {
 		// collect font faces if any
 		if c.fontFace == nil {
-			c.fontFace = make(map[string][]string)
+			c.fontFace = make(map[string][]cssselector.Chain)
 		}
-		faces, found := c.fontFace[selector]
+		selectors, found := c.fontFace[fontFace]
 		if !found {
-			faces = make([]string, 0, len(c.currentFontFaces))
+			selectors = make([]cssselector.Chain, 0, len(c.currentSelectors))
 		}
-		c.fontFace[selector] = append(faces, c.currentFontFaces...)
+		for _, selector := range c.currentSelectors {
+			chain, err := cssselector.Parse(strings.NewReader(selector))
+			if err != nil {
+				panic(err)
+			}
+			selectors = append(selectors, chain)
+		}
+		c.fontFace[fontFace] = selectors
 	}
 
 	// reset everything

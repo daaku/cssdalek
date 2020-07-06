@@ -40,7 +40,8 @@ func TestCore(t *testing.T) {
 				ensure.DeepEqual(t,
 					strings.TrimSpace(actual.String()),
 					expected,
-					"seen nodes", a.htmlInfo.Seen,
+					"html info", a.htmlInfo,
+					"css info", a.cssInfo,
 				)
 			}
 		})

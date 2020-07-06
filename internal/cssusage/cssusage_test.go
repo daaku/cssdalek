@@ -4,77 +4,110 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/daaku/cssdalek/internal/cssselector"
 	"github.com/daaku/ensure"
 )
 
 func TestInfoMerge(t *testing.T) {
+	c1, err := cssselector.Parse(strings.NewReader("a"))
+	ensure.Nil(t, err)
+	c2, err := cssselector.Parse(strings.NewReader("i"))
+	ensure.Nil(t, err)
+	c3, err := cssselector.Parse(strings.NewReader("b"))
+	ensure.Nil(t, err)
+
 	i1 := Info{
-		FontFace: map[string][]string{
-			"f1": {"s1", "s2"},
-			"f2": {"s1", "s2"},
+		FontFace: map[string][]cssselector.Chain{
+			"f1": {c1, c2},
+			"f2": {c1, c3},
 		},
 	}
 	i2 := Info{
-		FontFace: map[string][]string{
-			"f1": {"s2", "s3"},
-			"f3": {"s1", "s2"},
+		FontFace: map[string][]cssselector.Chain{
+			"f1": {c2, c3},
+			"f3": {c1, c2},
 		},
 	}
 	i1.Merge(&i2)
 	ensure.DeepEqual(t, i1, Info{
-		FontFace: map[string][]string{
-			"f1": {"s1", "s2", "s2", "s3"},
-			"f2": {"s1", "s2"},
-			"f3": {"s1", "s2"},
+		FontFace: map[string][]cssselector.Chain{
+			"f1": {c1, c2, c2, c3},
+			"f2": {c1, c3},
+			"f3": {c1, c2},
 		},
 	})
 }
 
 func TestFontFace(t *testing.T) {
+	aC, err := cssselector.Parse(strings.NewReader("a"))
+	ensure.Nil(t, err)
+	aiC, err := cssselector.Parse(strings.NewReader("a i"))
+	ensure.Nil(t, err)
+
 	cases := []struct {
 		name  string
 		css   string
-		faces map[string][]string
+		faces map[string][]cssselector.Chain
 	}{
 		{
-			name:  "unquoted",
-			css:   `a { font-family: Sans; }`,
-			faces: map[string][]string{"a": {"Sans"}},
+			name: "unquoted",
+			css:  `a { font-family: Sans; }`,
+			faces: map[string][]cssselector.Chain{
+				"Sans": {aC},
+			},
 		},
 		{
-			name:  "quoted",
-			css:   `a { font-family: "Sans"; }`,
-			faces: map[string][]string{"a": {"Sans"}},
+			name: "quoted",
+			css:  `a { font-family: "Sans"; }`,
+			faces: map[string][]cssselector.Chain{
+				"Sans": {aC},
+			},
 		},
 		{
-			name:  "invalid unquoted",
-			css:   `a { font-family: Sans Serif; }`,
-			faces: map[string][]string{"a": {"Sans Serif"}},
+			name: "invalid unquoted",
+			css:  `a { font-family: Sans Serif; }`,
+			faces: map[string][]cssselector.Chain{
+				"Sans Serif": {aC},
+			},
 		},
 		{
-			name:  "nested tags",
-			css:   `a i { font-family: Sans; }`,
-			faces: map[string][]string{"a i": {"Sans"}},
+			name: "nested tags",
+			css:  `a i { font-family: Sans; }`,
+			faces: map[string][]cssselector.Chain{
+				"Sans": {aiC},
+			},
 		},
 		{
-			name:  "multiple families",
-			css:   `a { font-family: Sans, Serif; }`,
-			faces: map[string][]string{"a": {"Sans", "Serif"}},
+			name: "multiple families",
+			css:  `a { font-family: Sans, Serif; }`,
+			faces: map[string][]cssselector.Chain{
+				"Sans":  {aC},
+				"Serif": {aC},
+			},
 		},
 		{
-			name:  "multiple families quoted",
-			css:   `a { font-family: "Sans", "Serif"; }`,
-			faces: map[string][]string{"a": {"Sans", "Serif"}},
+			name: "multiple families quoted",
+			css:  `a { font-family: "Sans", "Serif"; }`,
+			faces: map[string][]cssselector.Chain{
+				"Sans":  {aC},
+				"Serif": {aC},
+			},
 		},
 		{
-			name:  "multiple families invalid unquoted",
-			css:   `a { font-family: Sans Serif, Comic Sans; }`,
-			faces: map[string][]string{"a": {"Sans Serif", "Comic Sans"}},
+			name: "multiple families invalid unquoted",
+			css:  `a { font-family: Sans Serif, Comic Sans; }`,
+			faces: map[string][]cssselector.Chain{
+				"Sans Serif": {aC},
+				"Comic Sans": {aC},
+			},
 		},
 		{
-			name:  "multiple families invalid comma",
-			css:   `a { font-family: Sans, , Serif; }`,
-			faces: map[string][]string{"a": {"Sans", "Serif"}},
+			name: "multiple families invalid comma",
+			css:  `a { font-family: Sans, , Serif; }`,
+			faces: map[string][]cssselector.Chain{
+				"Sans":  {aC},
+				"Serif": {aC},
+			},
 		},
 	}
 

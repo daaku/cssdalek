@@ -155,21 +155,21 @@ func TestSelectorMatchFalse(t *testing.T) {
 
 func TestValidSelectors(t *testing.T) {
 	cases := []struct {
-		name     string
-		text     string
-		selector []*Selector
+		name  string
+		text  string
+		chain Chain
 	}{
 		{
 			"hash",
 			"#first-id",
-			[]*Selector{
+			Chain{
 				{ID: "first-id"},
 			},
 		},
 		{
 			"descendant hash",
 			"#first-id #second-id",
-			[]*Selector{
+			Chain{
 				{ID: "first-id"},
 				{ID: "second-id"},
 			},
@@ -177,14 +177,14 @@ func TestValidSelectors(t *testing.T) {
 		{
 			"class",
 			".first-class",
-			[]*Selector{
+			Chain{
 				{Class: set("first-class")},
 			},
 		},
 		{
 			"descendant class",
 			".first-class .second-class",
-			[]*Selector{
+			Chain{
 				{Class: set("first-class")},
 				{Class: set("second-class")},
 			},
@@ -192,14 +192,14 @@ func TestValidSelectors(t *testing.T) {
 		{
 			"and class",
 			".first-class.second-class",
-			[]*Selector{
+			Chain{
 				{Class: set("first-class", "second-class")},
 			},
 		},
 		{
 			"direct descandant",
 			".first-class > .second-class",
-			[]*Selector{
+			Chain{
 				{Class: set("first-class")},
 				{Class: set("second-class")},
 			},
@@ -207,7 +207,7 @@ func TestValidSelectors(t *testing.T) {
 		{
 			"preceed",
 			".first-class ~ .second-class",
-			[]*Selector{
+			Chain{
 				{Class: set("first-class")},
 				{Class: set("second-class")},
 			},
@@ -215,7 +215,7 @@ func TestValidSelectors(t *testing.T) {
 		{
 			"immediately preceed",
 			".first-class + .second-class",
-			[]*Selector{
+			Chain{
 				{Class: set("first-class")},
 				{Class: set("second-class")},
 			},
@@ -226,7 +226,7 @@ func TestValidSelectors(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			actual, err := Parse(strings.NewReader(c.text))
 			ensure.Nil(t, err)
-			ensure.DeepEqual(t, actual, c.selector)
+			ensure.DeepEqual(t, actual, c.chain)
 		})
 	}
 }
