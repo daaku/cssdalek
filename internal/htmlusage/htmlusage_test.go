@@ -1,0 +1,62 @@
+package htmlusage
+
+import (
+	"strings"
+	"testing"
+
+	"github.com/daaku/cssdalek/internal/cssselector"
+
+	"github.com/daaku/ensure"
+)
+
+func seen(t testing.TB, selectors ...string) []cssselector.Selector {
+	var parsed []cssselector.Selector
+	for _, s := range selectors {
+		p, err := cssselector.Parse(strings.NewReader(s))
+		ensure.Nil(t, err, "for selector", s)
+		parsed = append(parsed, p...)
+	}
+	return parsed
+}
+
+func TestValid(t *testing.T) {
+	cases := []struct {
+		name string
+		html string
+		seen []cssselector.Selector
+	}{
+		{
+			name: "tag",
+			html: `<a>`,
+			seen: seen(t, "a"),
+		},
+		{
+			name: "id",
+			html: `<a id="f">`,
+			seen: seen(t, "a#f"),
+		},
+		{
+			name: "class",
+			html: `<a class="f">`,
+			seen: seen(t, "a.f"),
+		},
+		{
+			name: "attr",
+			html: `<a foo="bar">`,
+			seen: []cssselector.Selector{
+				{
+					Tag:  "a",
+					Attr: map[string]struct{}{"foo": {}},
+				},
+			},
+		},
+	}
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			info, err := Extract(strings.NewReader(c.html))
+			ensure.Nil(t, err)
+			ensure.DeepEqual(t, info.Seen, c.seen)
+		})
+	}
+}

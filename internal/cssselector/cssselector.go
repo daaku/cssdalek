@@ -45,12 +45,12 @@ func (s *Selector) Matches(node *Selector) bool {
 	return true
 }
 
-type Chain []*Selector
+type Chain []Selector
 
 func Parse(selector io.Reader) (Chain, error) {
 	l := css.NewLexer(selector)
-	s := &Selector{}
-	chain := make([]*Selector, 0, 1)
+	s := Selector{}
+	chain := make(Chain, 0, 1)
 outer:
 	for {
 		tt, data := l.Next()
@@ -95,7 +95,7 @@ outer:
 			case '>', '+', '~':
 				if !s.IsZero() {
 					chain = append(chain, s)
-					s = &Selector{}
+					s = Selector{}
 				}
 			}
 		case css.IdentToken:
@@ -103,7 +103,7 @@ outer:
 		case css.WhitespaceToken:
 			if !s.IsZero() {
 				chain = append(chain, s)
-				s = &Selector{}
+				s = Selector{}
 			}
 		}
 	}
