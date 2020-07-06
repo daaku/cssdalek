@@ -36,6 +36,9 @@ type Info struct {
 }
 
 func (i *Info) Merge(other *Info) {
+	if i.FontFace == nil {
+		i.FontFace = make(map[string][]cssselector.Chain)
+	}
 	for face, selectors := range other.FontFace {
 		i.FontFace[face] = append(i.FontFace[face], selectors...)
 	}

@@ -1,0 +1,12 @@
+.red {
+  color: red;
+}
+.yellow {
+  color: yellow;
+}
+@font-face {
+  font-family: 'Piedra';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/piedra/v8/ke8kOg8aN0Bn7hTem0aG.woff2) format('woff2');
+}

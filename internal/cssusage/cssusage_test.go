@@ -21,6 +21,7 @@ func TestInfoMerge(t *testing.T) {
 	c3, err := cssselector.Parse(strings.NewReader("b"))
 	ensure.Nil(t, err)
 
+	i0 := Info{}
 	i1 := Info{
 		FontFace: map[string][]cssselector.Chain{
 			"f1": {c1, c2},
@@ -33,8 +34,9 @@ func TestInfoMerge(t *testing.T) {
 			"f3": {c1, c2},
 		},
 	}
-	i1.Merge(&i2)
-	ensure.DeepEqual(t, i1, Info{
+	i0.Merge(&i1)
+	i0.Merge(&i2)
+	ensure.DeepEqual(t, i0, Info{
 		FontFace: map[string][]cssselector.Chain{
 			"f1": {c1, c2, c2, c3},
 			"f2": {c1, c3},

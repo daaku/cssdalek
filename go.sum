@@ -2,6 +2,8 @@ github.com/daaku/ensure v0.0.0-20200528132101-12c24e7f7796 h1:5dh60QSTGj2wWGwO5w
 github.com/daaku/ensure v0.0.0-20200528132101-12c24e7f7796/go.mod h1:Ow4+0ZvWSGA0FkpjHd3H5R0LiKuSXFBf7oBPzJpCmSk=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/facebookgo/errgroup v0.0.0-20160209021148-779c8d7ef069 h1:IdOVrga1ENNu/2+Gt9mNqJ8E8Ed4DhOi514NIqKD2q0=
+github.com/facebookgo/errgroup v0.0.0-20160209021148-779c8d7ef069/go.mod h1:jelyCGQBApd6AYnPVnvk+ZG9by4cjNIOD/gmTviVbLA=
 github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 h1:7HZCaLC5+BZpmbhCOZJ293Lz68O7PYrF2EzeiFMwCLk=
 github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4/go.mod h1:5tD+neXqOorC30/tWg0LCSkrqj/AR6gu8yY8/fpw1q0=
 github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=
