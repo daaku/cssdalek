@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -55,4 +56,10 @@ func TestReaderError(t *testing.T) {
 	os.Remove(f.Name())
 	err = Purge(nil, nil, nil, f, ioutil.Discard)
 	ensure.True(t, errors.Is(err, os.ErrClosed))
+}
+
+func TestUnexpectedAtRule(t *testing.T) {
+	const css = `@foo-bar { baz: 1 }`
+	err := Purge(nil, nil, nil, strings.NewReader(css), ioutil.Discard)
+	ensure.Err(t, err, regexp.MustCompile("unimplemented"))
 }

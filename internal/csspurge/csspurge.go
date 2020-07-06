@@ -3,7 +3,6 @@ package csspurge
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"log"
 
@@ -168,7 +167,7 @@ func (c *purger) beginAtRule() pa.Next {
 	if bytes.EqualFold(c.data, atFontFaceB) {
 		return c.beginAtFontFace
 	}
-	panic(fmt.Sprintf("unimplemented: %s", c.data))
+	panic(errors.Errorf("csspurge: unimplemented rule: %s", c.data))
 }
 
 func (c *purger) endAtRule() pa.Next {
