@@ -12,6 +12,7 @@ import (
 
 	"github.com/daaku/cssdalek/internal/cssselector"
 	"github.com/daaku/cssdalek/internal/htmlusage"
+
 	"github.com/daaku/ensure"
 	"github.com/pkg/errors"
 )
