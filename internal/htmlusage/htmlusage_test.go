@@ -35,6 +35,58 @@ func TestInfoMerge(t *testing.T) {
 	})
 }
 
+func TestInfoIncludes(t *testing.T) {
+	cases := []struct {
+		name  string
+		seen  []cssselector.Selector
+		chain cssselector.Chain
+	}{
+		{
+			name:  "simple tag",
+			seen:  seen(t, "a"),
+			chain: cssselector.Chain(seen(t, "a")),
+		},
+		{
+			name:  "multiple selectors",
+			seen:  seen(t, "a i"),
+			chain: cssselector.Chain(seen(t, "a i")),
+		},
+	}
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			i := Info{Seen: c.seen}
+			ensure.True(t, i.Includes(c.chain))
+		})
+	}
+}
+
+func TestInfoNotIncludes(t *testing.T) {
+	cases := []struct {
+		name  string
+		seen  []cssselector.Selector
+		chain cssselector.Chain
+	}{
+		{
+			name:  "simple tag",
+			seen:  seen(t, "a"),
+			chain: cssselector.Chain(seen(t, "b")),
+		},
+		{
+			name:  "multiple selectors",
+			seen:  seen(t, "a i"),
+			chain: cssselector.Chain(seen(t, "a b")),
+		},
+	}
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			i := Info{Seen: c.seen}
+			ensure.False(t, i.Includes(c.chain))
+		})
+	}
+}
+
 func TestValid(t *testing.T) {
 	cases := []struct {
 		name string
