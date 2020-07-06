@@ -157,9 +157,6 @@ func (c *purger) beginAtFontFace() pa.Next {
 	c.outSwap = c.out
 	c.out = &c.fontFaceRule
 	pa.Write(c.out, c.data)
-	for _, val := range c.parser.Values() {
-		pa.Write(c.out, val.Data)
-	}
 	pa.WriteString(c.out, "{")
 	return c.outer
 }

@@ -2,6 +2,7 @@ package csspurge
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -45,4 +46,13 @@ func TestCore(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReaderError(t *testing.T) {
+	f, err := ioutil.TempFile("", "cssdalek-csspurge-")
+	ensure.Nil(t, err)
+	f.Close()
+	os.Remove(f.Name())
+	err = Purge(nil, nil, nil, f, ioutil.Discard)
+	ensure.True(t, errors.Is(err, os.ErrClosed))
 }
