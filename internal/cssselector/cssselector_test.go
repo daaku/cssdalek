@@ -319,6 +319,13 @@ func TestValidSelectors(t *testing.T) {
 				{Attr: set("bar")},
 			},
 		},
+		{
+			"function with data",
+			"*:not(:focus)",
+			Chain{
+				{Function: []string{"not"}},
+			},
+		},
 	}
 	for _, c := range cases {
 		c := c

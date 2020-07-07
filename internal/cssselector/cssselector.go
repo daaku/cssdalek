@@ -19,6 +19,7 @@ type Selector struct {
 	Attr          map[string]struct{}
 	PsuedoClass   []string
 	PsuedoElement []string
+	Function      []string
 }
 
 // IsZero returns true of this selector is a zero value. This is also true for
@@ -95,6 +96,10 @@ outer:
 						tt, data, l.Offset())
 				case css.IdentToken:
 					s.PsuedoElement = append(s.PsuedoElement, string(bytes.ToLower(data)))
+				}
+			case css.FunctionToken:
+				s.Function = append(s.Function, string(bytes.ToLower(bytes.TrimRight(data, "("))))
+				for tt, _ := l.Next(); tt != css.RightParenthesisToken; tt, _ = l.Next() {
 				}
 			case css.IdentToken:
 				s.PsuedoClass = append(s.PsuedoClass, string(bytes.ToLower(data)))

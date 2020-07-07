@@ -1,5 +1,7 @@
 github.com/daaku/ensure v0.0.0-20200528132101-12c24e7f7796 h1:5dh60QSTGj2wWGwO5wWLVtiCc+IYt5DEn/9OmwBg6e8=
 github.com/daaku/ensure v0.0.0-20200528132101-12c24e7f7796/go.mod h1:Ow4+0ZvWSGA0FkpjHd3H5R0LiKuSXFBf7oBPzJpCmSk=
+github.com/daaku/ensure v1.0.1 h1:nnbJcD3PSxo6Jm7p8ODuw9WdMCHceF+z4fs+xCbj+PU=
+github.com/daaku/ensure v1.0.1/go.mod h1:DtAAnvKyntGyC/wijZKtC48R79j6YDoePh1/idKgDwc=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/facebookgo/errgroup v0.0.0-20160209021148-779c8d7ef069 h1:IdOVrga1ENNu/2+Gt9mNqJ8E8Ed4DhOi514NIqKD2q0=
