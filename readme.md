@@ -61,6 +61,7 @@ open example/index.html
 ## TODO
 
 - [ ] Make CSS whitespace irrelevant in tests
+- [ ] License comments
 - [ ] Tables
 - [ ] Preset whitelist
 - [ ] Explicit includes

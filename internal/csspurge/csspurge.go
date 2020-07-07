@@ -278,7 +278,7 @@ func (c *purger) outer() pa.Next {
 		return c.selector
 	case css.BeginRulesetGrammar:
 		return c.beginRuleset
-	case css.DeclarationGrammar:
+	case css.DeclarationGrammar, css.CustomPropertyGrammar:
 		return c.decl
 	case css.CommentGrammar:
 		return c.outer
