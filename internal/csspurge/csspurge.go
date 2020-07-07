@@ -75,7 +75,7 @@ func (c *purger) selector() pa.Next {
 	selectorBytes := c.scratch.Bytes()
 	chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
 	if err != nil {
-		panic(err)
+		panic(errors.WithMessagef(err, "at offset %d", c.parser.Offset()))
 	}
 
 	include := c.htmlInfo.Includes(chain)

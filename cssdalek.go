@@ -129,7 +129,7 @@ func (a *app) run() error {
 			}
 			err = csspurge.Purge(&a.htmlInfo, &a.cssInfo, a.log, bufio.NewReader(f), w)
 			if err != nil {
-				return err
+				return errors.WithMessagef(err, "in file %q", filename)
 			}
 		}
 	}

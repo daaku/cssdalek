@@ -264,6 +264,20 @@ func TestValidSelectors(t *testing.T) {
 				{Class: set("second-class")},
 			},
 		},
+		{
+			"psuedo class",
+			":root",
+			Chain{
+				{PsuedoClass: "root"},
+			},
+		},
+		{
+			"psuedo element",
+			"::before",
+			Chain{
+				{PsuedoElement: "before"},
+			},
+		},
 	}
 	for _, c := range cases {
 		c := c
