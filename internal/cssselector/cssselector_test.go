@@ -272,10 +272,24 @@ func TestValidSelectors(t *testing.T) {
 			},
 		},
 		{
+			"psuedo class with dashes",
+			":first-of-type",
+			Chain{
+				{PsuedoClass: "first-of-type"},
+			},
+		},
+		{
 			"psuedo element",
 			"::before",
 			Chain{
 				{PsuedoElement: "before"},
+			},
+		},
+		{
+			"psuedo element with dashes",
+			"::-webkit-something",
+			Chain{
+				{PsuedoElement: "-webkit-something"},
 			},
 		},
 	}
