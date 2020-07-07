@@ -17,8 +17,8 @@ type Selector struct {
 	ID            string
 	Class         map[string]struct{}
 	Attr          map[string]struct{}
-	PsuedoClass   string
-	PsuedoElement string
+	PsuedoClass   []string
+	PsuedoElement []string
 }
 
 // IsZero returns true of this selector is a zero value. This is also true for
@@ -29,8 +29,8 @@ func (s *Selector) IsZero() bool {
 			s.ID == "" &&
 			len(s.Class) == 0 &&
 			len(s.Attr) == 0 &&
-			s.PsuedoClass == "" &&
-			s.PsuedoElement == "")
+			len(s.PsuedoClass) == 0 &&
+			len(s.PsuedoElement) == 0)
 }
 
 // Matches returns true of this selector matches the given node.
@@ -94,10 +94,10 @@ outer:
 						"cssselector: unexpected token %s with data %q at offset %d after colon",
 						tt, data, l.Offset())
 				case css.IdentToken:
-					s.PsuedoElement = string(bytes.ToLower(data))
+					s.PsuedoElement = append(s.PsuedoElement, string(bytes.ToLower(data)))
 				}
 			case css.IdentToken:
-				s.PsuedoClass = string(bytes.ToLower(data))
+				s.PsuedoClass = append(s.PsuedoClass, string(bytes.ToLower(data)))
 			}
 		case css.LeftBracketToken:
 			tt, next := l.Next()
