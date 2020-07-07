@@ -110,7 +110,7 @@ outer:
 				s.Attr = make(map[string]struct{})
 			}
 			s.Attr[string(bytes.ToLower(next))] = struct{}{}
-			for tt, _ := l.Next(); tt != css.RightBracketToken; {
+			for tt, _ := l.Next(); tt != css.RightBracketToken; tt, _ = l.Next() {
 			}
 		case css.DelimToken:
 			if len(data) != 1 {

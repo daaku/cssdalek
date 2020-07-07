@@ -305,6 +305,13 @@ func TestValidSelectors(t *testing.T) {
 			},
 		},
 		{
+			"attr selector with value",
+			"[foo=bar]",
+			Chain{
+				{Attr: set("foo")},
+			},
+		},
+		{
 			"attr selector then another",
 			"[foo] [bar]",
 			Chain{
