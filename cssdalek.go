@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/daaku/cssdalek/internal/csspurge"
 	"github.com/daaku/cssdalek/internal/cssusage"
@@ -106,6 +107,7 @@ func (a *app) buildCSSInfo(eg *errgroup.Group) {
 }
 
 func (a *app) run() error {
+	start := time.Now()
 	var eg errgroup.Group
 	eg.Add(2)
 	go a.buildHTMLInfo(&eg)
@@ -131,6 +133,7 @@ func (a *app) run() error {
 			}
 		}
 	}
+	a.log.Println("Took", time.Since(start))
 	return errors.WithStack(w.Flush())
 }
 
