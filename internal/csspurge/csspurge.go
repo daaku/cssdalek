@@ -160,6 +160,15 @@ func (c *purger) beginAtFontFace() pa.Next {
 	return c.outer
 }
 
+func (c *purger) beginAtRuleUnknown() pa.Next {
+	pa.Write(c.out, c.data)
+	for _, val := range c.parser.Values() {
+		pa.Write(c.out, val.Data)
+	}
+	pa.WriteString(c.out, ";")
+	return c.outer
+}
+
 func (c *purger) beginAtRule() pa.Next {
 	if bytes.EqualFold(c.data, atMediaB) {
 		return c.beginAtMedia
@@ -167,7 +176,7 @@ func (c *purger) beginAtRule() pa.Next {
 	if bytes.EqualFold(c.data, atFontFaceB) {
 		return c.beginAtFontFace
 	}
-	panic(errors.Errorf("csspurge: unimplemented rule: %s", c.data))
+	return c.beginAtRuleUnknown
 }
 
 func (c *purger) endAtRule() pa.Next {
