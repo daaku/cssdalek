@@ -130,7 +130,7 @@ func TestFontFace(t *testing.T) {
 		},
 		{
 			name: "keyframe at-rule is ignored",
-			css:  `@keyframes { 0% {} }`,
+			css:  `@keyframes { 0% { font-family: red; } }`,
 		},
 		{
 			name: "keyframes in animation",

@@ -18,6 +18,8 @@ var (
 	fontFamilyB    = []byte("font-family")
 	animationB     = []byte("animation")
 	animationNameB = []byte("animation-name")
+	atFontFaceB    = []byte("@font-face")
+	atKeyframes    = []byte("@keyframes")
 	commaB         = []byte(",")
 	quotesS        = `"'`
 )
@@ -72,6 +74,22 @@ func (c *extractor) error() pa.Next {
 		return nil
 	}
 	panic(errors.WithStack(err))
+}
+
+func (c *extractor) beginAtRule() pa.Next {
+	if bytes.EqualFold(c.data, atFontFaceB) {
+		return c.discardAtRule
+	}
+	if bytes.EqualFold(c.data, atKeyframes) {
+		return c.discardAtRule
+	}
+	return c.outer
+}
+
+func (c *extractor) discardAtRule() pa.Next {
+	for tt, _, _ := c.parser.Next(); tt != css.EndAtRuleGrammar; tt, _, _ = c.parser.Next() {
+	}
+	return c.outer
 }
 
 func (c *extractor) selector() pa.Next {
@@ -172,6 +190,8 @@ func (c *extractor) outer() pa.Next {
 	switch gt {
 	default:
 		return c.outer
+	case css.BeginAtRuleGrammar:
+		return c.beginAtRule
 	case css.ErrorGrammar:
 		return c.error
 	case css.QualifiedRuleGrammar:
