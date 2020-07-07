@@ -110,6 +110,8 @@ outer:
 				return nil, errors.Errorf(
 					"cssselector: unexpected token %s with data %q at offset %d while parsing delimiter",
 					tt, data, l.Offset())
+			case '*':
+				continue
 			case '.':
 				tt, next := l.Next()
 				if tt != css.IdentToken {
@@ -135,6 +137,11 @@ outer:
 				s = Selector{}
 			}
 		}
+	}
+	// if nothing remained, we must have had a lone '*'
+	// include the empty selector to indicate the universal selector.
+	if len(chain) == 0 {
+		chain = append(chain, s)
 	}
 	return chain, nil
 }

@@ -292,6 +292,11 @@ func TestValidSelectors(t *testing.T) {
 				{PsuedoElement: "-webkit-something"},
 			},
 		},
+		{
+			"universal selector",
+			"*",
+			Chain{{}},
+		},
 	}
 	for _, c := range cases {
 		c := c
