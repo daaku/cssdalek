@@ -18,6 +18,7 @@ import (
 var (
 	atMediaB    = []byte("@media")
 	atFontFaceB = []byte("@font-face")
+	atKeyframes = []byte("@keyframes")
 	fontFamilyB = []byte("font-family")
 	quotesS     = `"'`
 )
@@ -160,6 +161,55 @@ func (c *purger) beginAtFontFace() pa.Next {
 	return c.outer
 }
 
+func (c *purger) beginAtKeyframes() pa.Next {
+	c.scratch.Reset()
+	for _, val := range c.parser.Values() {
+		c.scratch.Write(val.Data)
+	}
+	keyframesName := bytes.TrimSpace(c.scratch.Bytes())
+
+	if selectors, found := c.cssInfo.Keyframes[string(keyframesName)]; found {
+		for _, s := range selectors {
+			if c.htmlInfo.Includes(s) {
+				return c.includeKeyframes
+			}
+		}
+	}
+
+	return c.dropUntilEndAtRule
+}
+
+func (c *purger) includeKeyframes() pa.Next {
+	pa.Write(c.out, c.data)
+	for _, val := range c.parser.Values() {
+		pa.Write(c.out, val.Data)
+	}
+	pa.WriteString(c.out, "{")
+	for tt, _, data := c.parser.Next(); tt != css.EndAtRuleGrammar; tt, _, data = c.parser.Next() {
+		if tt == css.DeclarationGrammar {
+			c.data = data
+			c.decl()
+		} else {
+			pa.Write(c.out, data)
+			if tt == css.BeginRulesetGrammar {
+				for _, val := range c.parser.Values() {
+					pa.Write(c.out, val.Data)
+				}
+				pa.WriteString(c.out, "{")
+			}
+		}
+	}
+	pa.WriteString(c.out, "}")
+
+	return c.outer
+}
+
+func (c *purger) dropUntilEndAtRule() pa.Next {
+	for tt, _, _ := c.parser.Next(); tt != css.EndAtRuleGrammar; tt, _, _ = c.parser.Next() {
+	}
+	return c.outer
+}
+
 func (c *purger) beginAtRuleUnknown() pa.Next {
 	pa.Write(c.out, c.data)
 	for _, val := range c.parser.Values() {
@@ -175,6 +225,9 @@ func (c *purger) beginAtRule() pa.Next {
 	}
 	if bytes.EqualFold(c.data, atFontFaceB) {
 		return c.beginAtFontFace
+	}
+	if bytes.EqualFold(c.data, atKeyframes) {
+		return c.beginAtKeyframes
 	}
 	return c.beginAtRuleUnknown
 }
