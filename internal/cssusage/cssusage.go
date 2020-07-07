@@ -16,6 +16,7 @@ import (
 
 var (
 	fontFamilyB = []byte("font-family")
+	animationB  = []byte("animation")
 	commaB      = []byte(",")
 	quotesS     = `"'`
 )
@@ -25,35 +26,43 @@ type extractor struct {
 	data             []byte
 	currentSelectors []string
 	currentFontFaces []string
+	currentKeyframes []string
 	scratch          bytes.Buffer
 
-	// map of font faces to selectors that use them
-	fontFace map[string][]cssselector.Chain
+	info *Info
 }
 
 type Info struct {
-	FontFace map[string][]cssselector.Chain
+	FontFace  map[string][]cssselector.Chain
+	Keyframes map[string][]cssselector.Chain
 }
 
 func (i *Info) Merge(other *Info) {
-	if i.FontFace == nil {
+	if len(other.FontFace) > 0 && i.FontFace == nil {
 		i.FontFace = make(map[string][]cssselector.Chain)
 	}
 	for face, selectors := range other.FontFace {
 		i.FontFace[face] = append(i.FontFace[face], selectors...)
 	}
+
+	if len(other.Keyframes) > 0 && i.Keyframes == nil {
+		i.Keyframes = make(map[string][]cssselector.Chain)
+	}
+	for kf, selectors := range other.Keyframes {
+		i.Keyframes[kf] = append(i.Keyframes[kf], selectors...)
+	}
 }
 
 func Extract(r io.Reader) (*Info, error) {
+	i := &Info{}
 	e := &extractor{
 		parser: css.NewParser(r, false),
+		info:   i,
 	}
 	if err := pa.Finish(e.outer); err != nil {
 		return nil, err
 	}
-	return &Info{
-		FontFace: e.fontFace,
-	}, nil
+	return i, nil
 }
 
 func (c *extractor) error() pa.Next {
@@ -74,23 +83,31 @@ func (c *extractor) selector() pa.Next {
 }
 
 func (c *extractor) endRuleset() pa.Next {
+	if len(c.currentFontFaces) == 0 && len(c.currentKeyframes) == 0 {
+		return c.outer
+	}
+
+	currentSelectors := make([]cssselector.Chain, 0, len(c.currentSelectors))
+	for _, selector := range c.currentSelectors {
+		chain, err := cssselector.Parse(strings.NewReader(selector))
+		if err != nil {
+			panic(err)
+		}
+		currentSelectors = append(currentSelectors, chain)
+	}
+
 	for _, fontFace := range c.currentFontFaces {
-		// collect font faces if any
-		if c.fontFace == nil {
-			c.fontFace = make(map[string][]cssselector.Chain)
+		if c.info.FontFace == nil {
+			c.info.FontFace = make(map[string][]cssselector.Chain)
 		}
-		selectors, found := c.fontFace[fontFace]
-		if !found {
-			selectors = make([]cssselector.Chain, 0, len(c.currentSelectors))
+		c.info.FontFace[fontFace] = append(c.info.FontFace[fontFace], currentSelectors...)
+	}
+
+	for _, kf := range c.currentKeyframes {
+		if c.info.Keyframes == nil {
+			c.info.Keyframes = make(map[string][]cssselector.Chain)
 		}
-		for _, selector := range c.currentSelectors {
-			chain, err := cssselector.Parse(strings.NewReader(selector))
-			if err != nil {
-				panic(err)
-			}
-			selectors = append(selectors, chain)
-		}
-		c.fontFace[fontFace] = selectors
+		c.info.Keyframes[kf] = append(c.info.Keyframes[kf], currentSelectors...)
 	}
 
 	// reset everything
@@ -112,6 +129,7 @@ func (c *extractor) decl() pa.Next {
 		return c.outer
 	}
 
+	// TODO: support font shorthand
 	if bytes.EqualFold(c.data, fontFamilyB) {
 		c.scratch.Reset()
 		for _, val := range c.parser.Values() {
@@ -125,6 +143,20 @@ func (c *extractor) decl() pa.Next {
 		}
 		if c.scratch.Len() != 0 {
 			c.currentFontFaces = append(c.currentFontFaces, c.scrUnqStr())
+		}
+	}
+
+	// consider all space separated idents to be keyframe names
+	if bytes.EqualFold(c.data, animationB) {
+		c.scratch.Reset()
+		for _, val := range c.parser.Values() {
+			if c.scratch.Len() != 0 {
+				c.currentKeyframes = append(c.currentKeyframes, c.scrUnqStr())
+			}
+			c.scratch.Write(val.Data)
+		}
+		if c.scratch.Len() != 0 {
+			c.currentKeyframes = append(c.currentKeyframes, c.scrUnqStr())
 		}
 	}
 	return c.outer

@@ -55,6 +55,7 @@ func TestFontFace(t *testing.T) {
 		name  string
 		css   string
 		faces map[string][]cssselector.Chain
+		kf    map[string][]cssselector.Chain
 	}{
 		{
 			name: "unquoted",
@@ -124,8 +125,19 @@ func TestFontFace(t *testing.T) {
 			},
 		},
 		{
-			name: "at-rule is ignored",
+			name: "font-face at-rule is ignored",
 			css:  `@font-face { font-family: Foo; }`,
+		},
+		{
+			name: "keyframe at-rule is ignored",
+			css:  `@keyframes { 0% {} }`,
+		},
+		{
+			name: "keyframes in animation",
+			css:  `a { animation: foo; }`,
+			kf: map[string][]cssselector.Chain{
+				"foo": {aC},
+			},
 		},
 	}
 
@@ -134,7 +146,8 @@ func TestFontFace(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			info, err := Extract(strings.NewReader(c.css))
 			ensure.Nil(t, err)
-			ensure.DeepEqual(t, info.FontFace, c.faces)
+			ensure.DeepEqual(t, info.FontFace, c.faces, "faces")
+			ensure.DeepEqual(t, info.Keyframes, c.kf, "keyframes")
 		})
 	}
 }
