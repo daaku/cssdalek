@@ -94,7 +94,7 @@ func (a *app) buildCSSInfo(eg *errgroup.Group) {
 					}
 					info, err := cssusage.Extract(bufio.NewReader(f))
 					if err != nil {
-						eg.Error(err)
+						eg.Error(errors.WithMessagef(err, "in file: %q", filename))
 						return
 					}
 					a.cssInfoMu.Lock()

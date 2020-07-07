@@ -15,13 +15,14 @@ import (
 )
 
 var (
-	fontFamilyB    = []byte("font-family")
-	animationB     = []byte("animation")
-	animationNameB = []byte("animation-name")
-	atFontFaceB    = []byte("@font-face")
-	atKeyframes    = []byte("@keyframes")
-	commaB         = []byte(",")
-	quotesS        = `"'`
+	fontFamilyB       = []byte("font-family")
+	animationB        = []byte("animation")
+	animationNameB    = []byte("animation-name")
+	atFontFaceB       = []byte("@font-face")
+	atKeyframes       = []byte("@keyframes")
+	atWebkitKeyframes = []byte("@-webkit-keyframes")
+	commaB            = []byte(",")
+	quotesS           = `"'`
 )
 
 type extractor struct {
@@ -80,7 +81,7 @@ func (c *extractor) beginAtRule() pa.Next {
 	if bytes.EqualFold(c.data, atFontFaceB) {
 		return c.discardAtRule
 	}
-	if bytes.EqualFold(c.data, atKeyframes) {
+	if bytes.EqualFold(c.data, atKeyframes) || bytes.EqualFold(c.data, atWebkitKeyframes) {
 		return c.discardAtRule
 	}
 	return c.outer
@@ -110,7 +111,7 @@ func (c *extractor) endRuleset() pa.Next {
 	for _, selector := range c.currentSelectors {
 		chain, err := cssselector.Parse(strings.NewReader(selector))
 		if err != nil {
-			panic(err)
+			panic(errors.WithMessagef(err, "at offset %d", c.parser.Offset()))
 		}
 		currentSelectors = append(currentSelectors, chain)
 	}

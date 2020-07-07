@@ -16,11 +16,12 @@ import (
 )
 
 var (
-	atMediaB    = []byte("@media")
-	atFontFaceB = []byte("@font-face")
-	atKeyframes = []byte("@keyframes")
-	fontFamilyB = []byte("font-family")
-	quotesS     = `"'`
+	atMediaB          = []byte("@media")
+	atFontFaceB       = []byte("@font-face")
+	atKeyframes       = []byte("@keyframes")
+	atWebkitKeyframes = []byte("@-webkit-keyframes")
+	fontFamilyB       = []byte("font-family")
+	quotesS           = `"'`
 )
 
 func Purge(h *htmlusage.Info, c *cssusage.Info, l *log.Logger, r io.Reader, w io.Writer) error {
@@ -226,7 +227,7 @@ func (c *purger) beginAtRule() pa.Next {
 	if bytes.EqualFold(c.data, atFontFaceB) {
 		return c.beginAtFontFace
 	}
-	if bytes.EqualFold(c.data, atKeyframes) {
+	if bytes.EqualFold(c.data, atKeyframes) || bytes.EqualFold(c.data, atWebkitKeyframes) {
 		return c.beginAtKeyframes
 	}
 	return c.beginAtRuleUnknown
