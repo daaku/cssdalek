@@ -139,6 +139,15 @@ func TestFontFace(t *testing.T) {
 				"foo": {aC},
 			},
 		},
+		{
+			name: "keyframes in animation-name",
+			css:  `a { animation-name: foo bar "baz jax"; }`,
+			kf: map[string][]cssselector.Chain{
+				"foo":     {aC},
+				"bar":     {aC},
+				"baz jax": {aC},
+			},
+		},
 	}
 
 	for _, c := range cases {

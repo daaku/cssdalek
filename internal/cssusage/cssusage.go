@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	fontFamilyB = []byte("font-family")
-	animationB  = []byte("animation")
-	commaB      = []byte(",")
-	quotesS     = `"'`
+	fontFamilyB    = []byte("font-family")
+	animationB     = []byte("animation")
+	animationNameB = []byte("animation-name")
+	commaB         = []byte(",")
+	quotesS        = `"'`
 )
 
 type extractor struct {
@@ -118,7 +119,7 @@ func (c *extractor) endRuleset() pa.Next {
 }
 
 func (c *extractor) scrUnqStr() string {
-	s := string(bytes.Trim(c.scratch.Bytes(), quotesS))
+	s := string(bytes.TrimSpace(bytes.Trim(c.scratch.Bytes(), quotesS)))
 	c.scratch.Reset()
 	return s
 }
@@ -147,11 +148,14 @@ func (c *extractor) decl() pa.Next {
 	}
 
 	// consider all space separated idents to be keyframe names
-	if bytes.EqualFold(c.data, animationB) {
+	if bytes.EqualFold(c.data, animationB) || bytes.EqualFold(c.data, animationNameB) {
 		c.scratch.Reset()
 		for _, val := range c.parser.Values() {
 			if c.scratch.Len() != 0 {
-				c.currentKeyframes = append(c.currentKeyframes, c.scrUnqStr())
+				v := c.scrUnqStr()
+				if v != "" {
+					c.currentKeyframes = append(c.currentKeyframes, v)
+				}
 			}
 			c.scratch.Write(val.Data)
 		}
