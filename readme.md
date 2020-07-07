@@ -61,10 +61,9 @@ open example/index.html
 ## TODO
 
 - [ ] Make CSS whitespace irrelevant in tests
-- [ ] Attribute Selectors
-- [ ] Key Frames
 - [ ] Tables
-- [ ] Psuedo Elements
+- [ ] Preset whitelist
+- [ ] Explicit includes
 - [ ] Hook up a generic parser for random file types
 - [ ] Fuzz testing
 - [ ] Test various invalid HTML/CSS scenarios
