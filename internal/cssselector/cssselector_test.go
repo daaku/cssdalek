@@ -297,6 +297,21 @@ func TestValidSelectors(t *testing.T) {
 			"*",
 			Chain{{}},
 		},
+		{
+			"attr selector",
+			"[foo]",
+			Chain{
+				{Attr: set("foo")},
+			},
+		},
+		{
+			"attr selector then another",
+			"[foo] [bar]",
+			Chain{
+				{Attr: set("foo")},
+				{Attr: set("bar")},
+			},
+		},
 	}
 	for _, c := range cases {
 		c := c

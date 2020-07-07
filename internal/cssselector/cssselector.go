@@ -99,6 +99,19 @@ outer:
 			case css.IdentToken:
 				s.PsuedoClass = string(bytes.ToLower(data))
 			}
+		case css.LeftBracketToken:
+			tt, next := l.Next()
+			if tt != css.IdentToken {
+				return nil, errors.Errorf(
+					"cssselector: unexpected token %s with %q followed by %q at offset %d while parsing attribute name",
+					tt, data, next, l.Offset())
+			}
+			if s.Attr == nil {
+				s.Attr = make(map[string]struct{})
+			}
+			s.Attr[string(bytes.ToLower(next))] = struct{}{}
+			for tt, _ := l.Next(); tt != css.RightBracketToken; {
+			}
 		case css.DelimToken:
 			if len(data) != 1 {
 				return nil, errors.Errorf(
