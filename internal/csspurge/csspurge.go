@@ -21,6 +21,7 @@ var (
 	atKeyframes       = []byte("@keyframes")
 	atWebkitKeyframes = []byte("@-webkit-keyframes")
 	fontFamilyB       = []byte("font-family")
+	licenseCommentB   = []byte("/*!")
 	quotesS           = `"'`
 )
 
@@ -138,6 +139,14 @@ func (c *purger) decl() pa.Next {
 		pa.Write(c.out, val.Data)
 	}
 	pa.WriteString(c.out, ";")
+	return c.outer
+}
+
+func (c *purger) comment() pa.Next {
+	if bytes.HasPrefix(c.data, licenseCommentB) {
+		pa.Write(c.out, c.data)
+		pa.WriteString(c.out, "\n")
+	}
 	return c.outer
 }
 
@@ -281,7 +290,7 @@ func (c *purger) outer() pa.Next {
 	case css.DeclarationGrammar, css.CustomPropertyGrammar:
 		return c.decl
 	case css.CommentGrammar:
-		return c.outer
+		return c.comment
 	case css.AtRuleGrammar, css.BeginAtRuleGrammar:
 		return c.beginAtRule
 	case css.EndAtRuleGrammar:

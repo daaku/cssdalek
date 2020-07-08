@@ -60,7 +60,6 @@ open example/index.html
 
 ## TODO
 
-- [ ] License comments
 - [ ] Tables
 - [ ] Preset whitelist
 - [ ] Explicit includes
