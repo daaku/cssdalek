@@ -61,7 +61,6 @@ open example/index.html
 ## TODO
 
 - [ ] Tables
-- [ ] Preset whitelist
 - [ ] Explicit includes
 - [ ] Hook up a generic parser for random file types
 - [ ] Fuzz testing
