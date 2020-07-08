@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,6 +23,7 @@ type app struct {
 	CSSGlobs  []string `opts:"name=css,short=c,help=globs targeting CSS files"`
 	HTMLGlobs []string `opts:"name=html,short=h,help=globs targeting HTML files"`
 	Include   []string `opts:"short=i,help=selectors to always include"`
+	Verbose   bool     `opts:"short=v,help=verbose logging"`
 
 	htmlInfoMu sync.Mutex
 	htmlInfo   htmlusage.Info
@@ -107,6 +109,11 @@ func (a *app) buildCSSInfo(eg *errgroup.Group) {
 }
 
 func (a *app) run() error {
+	if a.Verbose {
+		a.log = log.New(os.Stderr, ">> ", 0)
+	} else {
+		a.log = log.New(ioutil.Discard, "", 0)
+	}
 	start := time.Now()
 	var eg errgroup.Group
 	eg.Add(2)
@@ -138,7 +145,7 @@ func (a *app) run() error {
 }
 
 func main() {
-	a := app{log: log.New(os.Stderr, ">> ", 0)}
+	var a app
 	opts.Parse(&a)
 	if err := a.run(); err != nil {
 		fmt.Fprintf(os.Stderr, "%+v\n", err)
