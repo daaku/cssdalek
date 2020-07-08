@@ -11,6 +11,10 @@ import (
 	"github.com/tdewolff/parse/v2/css"
 )
 
+var (
+	classB = []byte("class")
+)
+
 // Selector is a single parsed selector, a number of which form a chain together.
 type Selector struct {
 	Tag           string
@@ -111,10 +115,13 @@ outer:
 					"cssselector: unexpected token %s with %q followed by %q at offset %d while parsing attribute name",
 					tt, data, next, l.Offset())
 			}
-			if s.Attr == nil {
-				s.Attr = make(map[string]struct{})
+			// ignore class, since we special case it. it's always considered to exist.
+			if !bytes.EqualFold(next, classB) {
+				if s.Attr == nil {
+					s.Attr = make(map[string]struct{})
+				}
+				s.Attr[string(bytes.ToLower(next))] = struct{}{}
 			}
-			s.Attr[string(bytes.ToLower(next))] = struct{}{}
 			for tt, _ := l.Next(); tt != css.RightBracketToken; tt, _ = l.Next() {
 			}
 		case css.DelimToken:

@@ -320,6 +320,13 @@ func TestValidSelectors(t *testing.T) {
 			},
 		},
 		{
+			"attr special case class",
+			"[class=bar]",
+			Chain{
+				{},
+			},
+		},
+		{
 			"function with data",
 			"*:not(:focus)",
 			Chain{
