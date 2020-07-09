@@ -13,6 +13,8 @@ import (
 	"github.com/daaku/cssdalek/internal/csspurge"
 	"github.com/daaku/cssdalek/internal/cssusage"
 	"github.com/daaku/cssdalek/internal/htmlusage"
+	"github.com/daaku/cssdalek/internal/usage"
+	"github.com/daaku/cssdalek/internal/wordusage"
 
 	"github.com/facebookgo/errgroup"
 	"github.com/jpillora/opts"
@@ -22,14 +24,20 @@ import (
 type app struct {
 	CSSGlobs  []string `opts:"name=css,short=c,help=globs targeting CSS files"`
 	HTMLGlobs []string `opts:"name=html,short=h,help=globs targeting HTML files"`
+	WordGlobs []string `opts:"name=word,short=w,help=globs targeting word files"`
 	Include   []string `opts:"short=i,help=selectors to always include"`
 	Verbose   bool     `opts:"short=v,help=verbose logging"`
 
 	htmlInfoMu sync.Mutex
 	htmlInfo   htmlusage.Info
 
+	wordInfoMu sync.Mutex
+	wordInfo   wordusage.Info
+
 	cssInfoMu sync.Mutex
 	cssInfo   cssusage.Info
+
+	usageInfo usage.MultiInfo
 
 	log *log.Logger
 }
@@ -65,6 +73,43 @@ func (a *app) buildHTMLInfo(eg *errgroup.Group) {
 					a.htmlInfoMu.Lock()
 					a.htmlInfo.Merge(info)
 					a.htmlInfoMu.Unlock()
+				}()
+			}
+		}()
+	}
+}
+
+func (a *app) buildWordInfo(eg *errgroup.Group) {
+	defer eg.Done()
+	eg.Add(len(a.WordGlobs))
+	for _, glob := range a.WordGlobs {
+		glob := glob
+		go func() {
+			defer eg.Done()
+			matches, err := filepath.Glob(glob)
+			if err != nil {
+				eg.Error(errors.WithStack(err))
+				return
+			}
+			eg.Add(len(matches))
+			for _, filename := range matches {
+				filename := filename
+				go func() {
+					defer eg.Done()
+					a.log.Printf("Processing Word file: %s\n", filename)
+					f, err := os.Open(filename)
+					if err != nil {
+						eg.Error(errors.WithStack(err))
+						return
+					}
+					info, err := wordusage.Extract(bufio.NewReader(f))
+					if err != nil {
+						eg.Error(err)
+						return
+					}
+					a.wordInfoMu.Lock()
+					a.wordInfo.Merge(info)
+					a.wordInfoMu.Unlock()
 				}()
 			}
 		}()
@@ -116,12 +161,15 @@ func (a *app) run() error {
 	}
 	start := time.Now()
 	var eg errgroup.Group
-	eg.Add(2)
+	eg.Add(3)
 	go a.buildHTMLInfo(&eg)
+	go a.buildWordInfo(&eg)
 	go a.buildCSSInfo(&eg)
 	if err := eg.Wait(); err != nil {
 		return err
 	}
+
+	a.usageInfo = usage.MultiInfo{&a.htmlInfo, &a.wordInfo}
 
 	w := bufio.NewWriter(os.Stdout)
 	for _, glob := range a.CSSGlobs {
@@ -134,7 +182,7 @@ func (a *app) run() error {
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			err = csspurge.Purge(&a.htmlInfo, &a.cssInfo, a.log, bufio.NewReader(f), w)
+			err = csspurge.Purge(a.usageInfo, &a.cssInfo, a.log, bufio.NewReader(f), w)
 			if err != nil {
 				return errors.WithMessagef(err, "in file %q", filename)
 			}

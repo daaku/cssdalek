@@ -8,8 +8,8 @@ import (
 
 	"github.com/daaku/cssdalek/internal/cssselector"
 	"github.com/daaku/cssdalek/internal/cssusage"
-	"github.com/daaku/cssdalek/internal/htmlusage"
 	"github.com/daaku/cssdalek/internal/pa"
+	"github.com/daaku/cssdalek/internal/usage"
 
 	"github.com/pkg/errors"
 	"github.com/tdewolff/parse/v2/css"
@@ -26,19 +26,19 @@ var (
 	quotesS           = `"'`
 )
 
-func Purge(h *htmlusage.Info, c *cssusage.Info, l *log.Logger, r io.Reader, w io.Writer) error {
+func Purge(u usage.Info, c *cssusage.Info, l *log.Logger, r io.Reader, w io.Writer) error {
 	p := purger{
-		htmlInfo: h,
-		cssInfo:  c,
-		log:      l,
-		parser:   css.NewParser(r, false),
-		out:      w,
+		usageInfo: u,
+		cssInfo:   c,
+		log:       l,
+		parser:    css.NewParser(r, false),
+		out:       w,
 	}
 	return pa.Finish(p.outer)
 }
 
 type purger struct {
-	htmlInfo         *htmlusage.Info
+	usageInfo        usage.Info
 	cssInfo          *cssusage.Info
 	log              *log.Logger
 	parser           *css.Parser
@@ -82,7 +82,7 @@ func (c *purger) selector() pa.Next {
 		panic(errors.WithMessagef(err, "at offset %d", c.parser.Offset()))
 	}
 
-	include := c.htmlInfo.Includes(chain)
+	include := c.usageInfo.Includes(chain)
 	if include {
 		// write all pending media queries, if any since we're including something
 		// contained within
@@ -181,7 +181,7 @@ func (c *purger) beginAtKeyframes() pa.Next {
 
 	if selectors, found := c.cssInfo.Keyframes[string(keyframesName)]; found {
 		for _, s := range selectors {
-			if c.htmlInfo.Includes(s) {
+			if c.usageInfo.Includes(s) {
 				return c.includeKeyframes
 			}
 		}
@@ -249,7 +249,7 @@ func (c *purger) endAtRule() pa.Next {
 
 		if selectors, found := c.cssInfo.FontFace[c.fontFaceName]; found {
 			for _, s := range selectors {
-				if c.htmlInfo.Includes(s) {
+				if c.usageInfo.Includes(s) {
 					io.Copy(c.outSwap, &c.fontFaceRule)
 					break
 				}

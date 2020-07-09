@@ -61,7 +61,7 @@ open example/index.html
 ## TODO
 
 - [ ] Tables
+- [ ] Dynamically changing attributes: checked, selected, open, value, focus, disabled, readonly
 - [ ] Explicit includes
-- [ ] Hook up a generic parser for random file types
 - [ ] Fuzz testing
 - [ ] Test various invalid HTML/CSS scenarios
