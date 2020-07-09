@@ -17,6 +17,7 @@ import (
 
 var (
 	atMediaB          = []byte("@media")
+	atSupportsB       = []byte("@supports")
 	atFontFaceB       = []byte("@font-face")
 	atKeyframes       = []byte("@keyframes")
 	atWebkitKeyframes = []byte("@-webkit-keyframes")
@@ -230,7 +231,7 @@ func (c *purger) beginAtRuleUnknown() pa.Next {
 }
 
 func (c *purger) beginAtRule() pa.Next {
-	if bytes.EqualFold(c.data, atMediaB) {
+	if bytes.EqualFold(c.data, atMediaB) || bytes.EqualFold(c.data, atSupportsB) {
 		return c.beginAtMedia
 	}
 	if bytes.EqualFold(c.data, atFontFaceB) {

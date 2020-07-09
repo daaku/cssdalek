@@ -18,6 +18,12 @@
   .b-class{color:yellow;}
 }
 .b-class{color:blue;}
+@supports ((position: -webkit-sticky) or (position: sticky)) {
+  .a-class{color:yellow;}
+}
+@supports (position: sticky) {
+  .b-class{color:yellow;}
+}
 --
 @media (max-width: 600px) {
   .a-class{color:red;}
@@ -28,3 +34,6 @@
   }
 }
 .a-class{color:green;}
+@supports ((position: -webkit-sticky) or (position: sticky)) {
+  .a-class{color:yellow;}
+}
