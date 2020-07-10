@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -42,10 +43,10 @@ type app struct {
 	log *log.Logger
 }
 
-func (a *app) buildHTMLInfo(eg *errgroup.Group) {
+func (a *app) build(eg *errgroup.Group, globs []string, b func(r io.Reader) error) {
 	defer eg.Done()
-	eg.Add(len(a.HTMLGlobs))
-	for _, glob := range a.HTMLGlobs {
+	eg.Add(len(globs))
+	for _, glob := range globs {
 		glob := glob
 		go func() {
 			defer eg.Done()
@@ -59,98 +60,55 @@ func (a *app) buildHTMLInfo(eg *errgroup.Group) {
 				filename := filename
 				go func() {
 					defer eg.Done()
-					a.log.Printf("Processing HTML file: %s\n", filename)
+					a.log.Printf("Processing file: %s\n", filename)
 					f, err := os.Open(filename)
 					if err != nil {
 						eg.Error(errors.WithStack(err))
 						return
 					}
-					info, err := htmlusage.Extract(bufio.NewReader(f))
-					if err != nil {
-						eg.Error(err)
-						return
-					}
-					a.htmlInfoMu.Lock()
-					a.htmlInfo.Merge(info)
-					a.htmlInfoMu.Unlock()
-				}()
-			}
-		}()
-	}
-}
-
-func (a *app) buildWordInfo(eg *errgroup.Group) {
-	defer eg.Done()
-	eg.Add(len(a.WordGlobs))
-	for _, glob := range a.WordGlobs {
-		glob := glob
-		go func() {
-			defer eg.Done()
-			matches, err := filepath.Glob(glob)
-			if err != nil {
-				eg.Error(errors.WithStack(err))
-				return
-			}
-			eg.Add(len(matches))
-			for _, filename := range matches {
-				filename := filename
-				go func() {
-					defer eg.Done()
-					a.log.Printf("Processing Word file: %s\n", filename)
-					f, err := os.Open(filename)
-					if err != nil {
-						eg.Error(errors.WithStack(err))
-						return
-					}
-					info, err := wordusage.Extract(bufio.NewReader(f))
-					if err != nil {
-						eg.Error(err)
-						return
-					}
-					a.wordInfoMu.Lock()
-					a.wordInfo.Merge(info)
-					a.wordInfoMu.Unlock()
-				}()
-			}
-		}()
-	}
-}
-
-func (a *app) buildCSSInfo(eg *errgroup.Group) {
-	defer eg.Done()
-	eg.Add(len(a.CSSGlobs))
-	for _, glob := range a.CSSGlobs {
-		glob := glob
-		go func() {
-			defer eg.Done()
-			matches, err := filepath.Glob(glob)
-			if err != nil {
-				eg.Error(errors.WithStack(err))
-				return
-			}
-			eg.Add(len(matches))
-			for _, filename := range matches {
-				filename := filename
-				go func() {
-					defer eg.Done()
-					a.log.Printf("Processing CSS file: %s\n", filename)
-					f, err := os.Open(filename)
-					if err != nil {
-						eg.Error(errors.WithStack(err))
-						return
-					}
-					info, err := cssusage.Extract(bufio.NewReader(f))
-					if err != nil {
+					defer f.Close()
+					if err := b(bufio.NewReader(f)); err != nil {
 						eg.Error(errors.WithMessagef(err, "in file: %q", filename))
 						return
 					}
-					a.cssInfoMu.Lock()
-					a.cssInfo.Merge(info)
-					a.cssInfoMu.Unlock()
 				}()
 			}
 		}()
 	}
+
+}
+
+func (a *app) buildHTMLInfo(r io.Reader) error {
+	info, err := htmlusage.Extract(r)
+	if err != nil {
+		return err
+	}
+	a.htmlInfoMu.Lock()
+	a.htmlInfo.Merge(info)
+	a.htmlInfoMu.Unlock()
+	return nil
+}
+
+func (a *app) buildWordInfo(r io.Reader) error {
+	info, err := wordusage.Extract(r)
+	if err != nil {
+		return err
+	}
+	a.wordInfoMu.Lock()
+	a.wordInfo.Merge(info)
+	a.wordInfoMu.Unlock()
+	return nil
+}
+
+func (a *app) buildCSSInfo(r io.Reader) error {
+	info, err := cssusage.Extract(r)
+	if err != nil {
+		return err
+	}
+	a.cssInfoMu.Lock()
+	a.cssInfo.Merge(info)
+	a.cssInfoMu.Unlock()
+	return nil
 }
 
 func (a *app) run() error {
@@ -162,9 +120,9 @@ func (a *app) run() error {
 	start := time.Now()
 	var eg errgroup.Group
 	eg.Add(3)
-	go a.buildHTMLInfo(&eg)
-	go a.buildWordInfo(&eg)
-	go a.buildCSSInfo(&eg)
+	go a.build(&eg, a.HTMLGlobs, a.buildHTMLInfo)
+	go a.build(&eg, a.WordGlobs, a.buildWordInfo)
+	go a.build(&eg, a.CSSGlobs, a.buildCSSInfo)
 	if err := eg.Wait(); err != nil {
 		return err
 	}
