@@ -93,7 +93,7 @@ checked for.
 
 ## TODO
 
-- [ ] Tables, Body and other automatically created elements
+- [ ] Tables
 - [ ] Dynamically changing attributes: checked, selected, open, value, focus, disabled, readonly
 - [ ] CI tag based release pipeline
 - [ ] Fuzz testing

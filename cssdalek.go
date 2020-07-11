@@ -24,6 +24,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+var includePresetSelectors = []string{
+	"body",
+	"head",
+	"html",
+}
+
 func buildRe(ss []string) ([]*regexp.Regexp, error) {
 	var res = make([]*regexp.Regexp, len(ss))
 	var err error
@@ -134,6 +140,11 @@ func (a *app) run() error {
 		a.log = log.New(ioutil.Discard, "", 0)
 	}
 
+	includePreset, err := htmlusage.FromSelectors(includePresetSelectors)
+	if err != nil {
+		panic(err)
+	}
+
 	includeClass, err := buildRe(a.IncludeClass)
 	if err != nil {
 		return err
@@ -159,6 +170,7 @@ func (a *app) run() error {
 	}
 
 	usageInfo := usage.MultiInfo{
+		includePreset,
 		&includeusage.IncludeClass{Re: includeClass},
 		&includeusage.IncludeID{Re: includeID},
 		includeSelector,
