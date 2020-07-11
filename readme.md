@@ -95,7 +95,6 @@ checked for.
 
 - [ ] Tables, Body and other automatically created elements
 - [ ] Dynamically changing attributes: checked, selected, open, value, focus, disabled, readonly
-- [ ] Explicit includes
 - [ ] CI tag based release pipeline
 - [ ] Fuzz testing
 - [ ] Test various invalid HTML/CSS scenarios

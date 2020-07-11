@@ -4,6 +4,7 @@ package htmlusage
 import (
 	"bytes"
 	"io"
+	"strings"
 
 	"github.com/daaku/cssdalek/internal/cssselector"
 
@@ -25,14 +26,6 @@ func (i *Info) Merge(other *Info) {
 }
 
 func (i *Info) Includes(chain cssselector.Chain) bool {
-	//TODO: fixme explicit Includes
-	/*
-		for _, other := range a.Include {
-			if selector == other {
-				return true
-			}
-		}
-	*/
 	pending := len(chain)
 	found := make([]bool, pending)
 	for _, node := range i.Seen {
@@ -51,6 +44,18 @@ func (i *Info) Includes(chain cssselector.Chain) bool {
 		}
 	}
 	return false
+}
+
+func FromSelectors(ss []string) (*Info, error) {
+	var i Info
+	for _, s := range ss {
+		sel, err := cssselector.Parse(strings.NewReader(s))
+		if err != nil {
+			return nil, errors.WithMessagef(err, "invalid selector: %q", s)
+		}
+		i.Seen = append(i.Seen, sel...)
+	}
+	return &i, nil
 }
 
 func Extract(r io.Reader) (*Info, error) {
