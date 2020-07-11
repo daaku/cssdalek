@@ -14,6 +14,55 @@ unused CSS.
 up serving your audience a whole lot smaller.
 
 
+## How?
+
+Usage looks like this:
+
+```sh
+cssdalek \
+  --css 'example/in-*.css' \
+  --html 'example/*.html' > example/min.css
+```
+
+This uses the `HTML` extractor, and will work well if you can point it to all
+your markup (you can use the flags multiple times).
+
+
+### Words Extractor
+
+If you're using dynamic templates, and/or JavaScript, then you can use the
+naive `Words` extractor, which assumes any word that exists can be a tag,
+classname or attribute. This will get you pretty far. For example:
+
+```sh
+cssdalek \
+  --css 'example/in-*.css'
+  --word 'example/*.tpl'
+  --word 'example/*.js' > example/min.css
+```
+
+
+### Includes
+
+Finally, this tool can't recognize or detect dynamically created classnames
+etc. So you can explicitly tell it about such cases either by providing
+regular expressions that matches classnames or IDs, or by providing a full
+selector (which can include tag, attr etc). For example:
+
+```sh
+cssdalek \
+  --css 'example/in-*.css' \
+  --include-class '^foo' \
+  --include-id '^bar.*baz$' \
+  --include-selector '#bar .foo[type=text]' \
+  --word 'example/*.tpl' \
+  --word 'example/*.js' > example/min.css
+```
+
+Also remember all of these can be combined. Some HTML files, some using the
+word tokenizer, and others via the explicit includes.
+
+
 ## Speed
 
 There are alternatives to this tool that provide the same end result.
@@ -42,26 +91,11 @@ will include the selector. That is, the relationships are not actually
 checked for.
 
 
-## NOTE
-
-This is probably not production ready, and you probably want to use
-[purgecss](https://github.com/FullHuman/purgecss).
-
-
-## Example
-
-To see a quick example in action:
-
-```sh
-cssdalek -c 'example/in-*.css' -h 'example/*.html' > example/min.css
-open example/index.html
-```
-
-
 ## TODO
 
-- [ ] Tables
+- [ ] Tables, Body and other automatically created elements
 - [ ] Dynamically changing attributes: checked, selected, open, value, focus, disabled, readonly
 - [ ] Explicit includes
+- [ ] CI tag based release pipeline
 - [ ] Fuzz testing
 - [ ] Test various invalid HTML/CSS scenarios
