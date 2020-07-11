@@ -94,7 +94,6 @@ checked for.
 ## TODO
 
 - [ ] Tables
-- [ ] Dynamically changing attributes: checked, selected, open, value, focus, disabled, readonly
 - [ ] CI tag based release pipeline
 - [ ] Fuzz testing
 - [ ] Test various invalid HTML/CSS scenarios

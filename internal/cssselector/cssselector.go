@@ -12,8 +12,25 @@ import (
 )
 
 var (
-	classB = []byte("class")
+	excludedAttr = [][]byte{
+		[]byte("checked"),
+		[]byte("class"),
+		[]byte("disabled"),
+		[]byte("open"),
+		[]byte("readonly"),
+		[]byte("selected"),
+		[]byte("value"),
+	}
 )
+
+func isExcludedAttr(b []byte) bool {
+	for _, a := range excludedAttr {
+		if bytes.EqualFold(a, b) {
+			return true
+		}
+	}
+	return false
+}
 
 // Selector is a single parsed selector, a number of which form a chain together.
 type Selector struct {
@@ -115,8 +132,7 @@ outer:
 					"cssselector: unexpected token %s with %q followed by %q at offset %d while parsing attribute name",
 					tt, data, next, l.Offset())
 			}
-			// ignore class, since we special case it. it's always considered to exist.
-			if !bytes.EqualFold(next, classB) {
+			if !isExcludedAttr(next) {
 				if s.Attr == nil {
 					s.Attr = make(map[string]struct{})
 				}

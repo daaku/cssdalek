@@ -333,6 +333,48 @@ func TestValidSelectors(t *testing.T) {
 				{Function: []string{"not"}},
 			},
 		},
+		{
+			"attr special case checked",
+			"[checked]",
+			Chain{
+				{},
+			},
+		},
+		{
+			"attr special case disabled",
+			"[disabled]",
+			Chain{
+				{},
+			},
+		},
+		{
+			"attr special case open",
+			"[open]",
+			Chain{
+				{},
+			},
+		},
+		{
+			"attr special case readonly",
+			"[readonly]",
+			Chain{
+				{},
+			},
+		},
+		{
+			"attr special case selected",
+			"[selected]",
+			Chain{
+				{},
+			},
+		},
+		{
+			"attr special case value",
+			"[value]",
+			Chain{
+				{},
+			},
+		},
 	}
 	for _, c := range cases {
 		c := c
