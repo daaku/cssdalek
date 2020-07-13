@@ -221,12 +221,21 @@ func (c *purger) dropUntilEndAtRule() pa.Next {
 	return c.outer
 }
 
-func (c *purger) beginAtRuleUnknown() pa.Next {
+func (c *purger) atRule() pa.Next {
 	pa.Write(c.out, c.data)
 	for _, val := range c.parser.Values() {
 		pa.Write(c.out, val.Data)
 	}
 	pa.WriteString(c.out, ";")
+	return c.outer
+}
+
+func (c *purger) beginAtRuleUnknown() pa.Next {
+	pa.Write(c.out, c.data)
+	for _, val := range c.parser.Values() {
+		pa.Write(c.out, val.Data)
+	}
+	pa.WriteString(c.out, "{")
 	return c.outer
 }
 
@@ -292,7 +301,9 @@ func (c *purger) outer() pa.Next {
 		return c.decl
 	case css.CommentGrammar:
 		return c.comment
-	case css.AtRuleGrammar, css.BeginAtRuleGrammar:
+	case css.AtRuleGrammar:
+		return c.atRule
+	case css.BeginAtRuleGrammar:
 		return c.beginAtRule
 	case css.EndAtRuleGrammar:
 		return c.endAtRule
