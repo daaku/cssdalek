@@ -22,6 +22,8 @@ import (
 	"github.com/facebookgo/errgroup"
 	"github.com/jpillora/opts"
 	"github.com/pkg/errors"
+	"github.com/tdewolff/minify/v2"
+	"github.com/tdewolff/minify/v2/css"
 )
 
 var includePresetSelectors = []string{
@@ -49,6 +51,7 @@ type app struct {
 	IncludeClass    []string `opts:"help=class regexp to include"`
 	IncludeID       []string `opts:"help=id regexp to include"`
 	IncludeSelector []string `opts:"short=i,help=selectors to include"`
+	Minify          bool     `opts:"short=m,help=minify the output"`
 	Verbose         bool     `opts:"short=v,help=verbose logging"`
 
 	htmlInfoMu sync.Mutex
@@ -178,7 +181,18 @@ func (a *app) run() error {
 		&a.wordInfo,
 	}
 
-	w := bufio.NewWriter(os.Stdout)
+	bw := bufio.NewWriter(os.Stdout)
+	var w io.Writer
+
+	if a.Minify {
+		const mime = "text/css"
+		m := minify.New()
+		m.AddFunc(mime, css.Minify)
+		w = m.Writer(mime, bw)
+	} else {
+		w = bw
+	}
+
 	for _, glob := range a.CSSGlobs {
 		matches, err := filepath.Glob(glob)
 		if err != nil {
@@ -195,12 +209,22 @@ func (a *app) run() error {
 			}
 		}
 	}
+
+	// maybe we need to close, if it's a minifier
+	if cw, ok := w.(io.Closer); ok {
+		if err := cw.Close(); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
 	a.log.Println("Took", time.Since(start))
-	return errors.WithStack(w.Flush())
+	return errors.WithStack(bw.Flush())
 }
 
 func main() {
-	var a app
+	a := app{
+		Minify: true,
+	}
 	opts.Parse(&a)
 	if err := a.run(); err != nil {
 		fmt.Fprintf(os.Stderr, "%+v\n", err)
