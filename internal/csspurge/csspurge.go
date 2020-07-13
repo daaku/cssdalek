@@ -51,6 +51,7 @@ type purger struct {
 	inFontFace       bool
 	fontFaceRule     bytes.Buffer
 	fontFaceName     string
+	inKeyframes      bool
 }
 
 func (c *purger) excludeRuleset() pa.Next {
@@ -77,12 +78,15 @@ func (c *purger) selector() pa.Next {
 	}
 
 	selectorBytes := c.scratch.Bytes()
-	chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
-	if err != nil {
-		panic(errors.WithMessagef(err, "at offset %d", c.parser.Offset()))
+	include := true
+	if !c.inKeyframes {
+		chain, err := cssselector.Parse(bytes.NewReader(selectorBytes))
+		if err != nil {
+			panic(errors.WithMessagef(err, "at offset %d", c.parser.Offset()))
+		}
+		include = c.usageInfo.Includes(chain)
 	}
 
-	include := c.usageInfo.Includes(chain)
 	if include {
 		// write all pending media queries, if any since we're including something
 		// contained within
@@ -182,37 +186,13 @@ func (c *purger) beginAtKeyframes() pa.Next {
 	if selectors, found := c.cssInfo.Keyframes[string(keyframesName)]; found {
 		for _, s := range selectors {
 			if c.usageInfo.Includes(s) {
-				return c.includeKeyframes
+				c.inKeyframes = true
+				return c.beginAtRuleUnknown
 			}
 		}
 	}
 
 	return c.dropUntilEndAtRule
-}
-
-func (c *purger) includeKeyframes() pa.Next {
-	pa.Write(c.out, c.data)
-	for _, val := range c.parser.Values() {
-		pa.Write(c.out, val.Data)
-	}
-	pa.WriteString(c.out, "{")
-	for tt, _, data := c.parser.Next(); tt != css.EndAtRuleGrammar; tt, _, data = c.parser.Next() {
-		if tt == css.DeclarationGrammar {
-			c.data = data
-			c.decl()
-		} else {
-			pa.Write(c.out, data)
-			if tt == css.BeginRulesetGrammar {
-				for _, val := range c.parser.Values() {
-					pa.Write(c.out, val.Data)
-				}
-				pa.WriteString(c.out, "{")
-			}
-		}
-	}
-	pa.WriteString(c.out, "}")
-
-	return c.outer
 }
 
 func (c *purger) dropUntilEndAtRule() pa.Next {
@@ -253,6 +233,8 @@ func (c *purger) beginAtRule() pa.Next {
 }
 
 func (c *purger) endAtRule() pa.Next {
+	c.inKeyframes = false
+
 	if c.inFontFace {
 		pa.WriteString(c.out, "}")
 

@@ -94,7 +94,6 @@ checked for.
 ## TODO
 
 - [ ] space before !important
-- [ ] comma in animation % selector lines
 - [ ] /*# comment for source mapping
 - [ ] Generate source mapping
 - [ ] Tables
