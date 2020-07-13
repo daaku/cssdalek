@@ -1,6 +1,9 @@
 package wordusage
 
 import (
+	"errors"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -127,6 +130,11 @@ func TestExtract(t *testing.T) {
 			in:   `<a class="foo-bar">`,
 			seen: set("a", "class", "foo-bar"),
 		},
+		{
+			name: "a word",
+			in:   `foo`,
+			seen: set("foo"),
+		},
 	}
 	for _, c := range cases {
 		c := c
@@ -136,4 +144,13 @@ func TestExtract(t *testing.T) {
 			ensure.DeepEqual(t, info.Seen, c.seen)
 		})
 	}
+}
+
+func TestReaderError(t *testing.T) {
+	f, err := ioutil.TempFile("", "cssdalek-wordusage-")
+	ensure.Nil(t, err)
+	f.Close()
+	os.Remove(f.Name())
+	_, err = Extract(f)
+	ensure.True(t, errors.Is(err, os.ErrClosed))
 }
