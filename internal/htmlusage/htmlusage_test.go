@@ -167,3 +167,15 @@ func TestReaderError(t *testing.T) {
 	_, err = Extract(f)
 	ensure.True(t, errors.Is(err, os.ErrClosed))
 }
+
+func TestFromSelectors(t *testing.T) {
+	selectors := []string{"a", "#foo"}
+	i, err := FromSelectors(selectors)
+	ensure.Nil(t, err)
+	ensure.DeepEqual(t, i, &Info{Seen: seen(t, selectors...)})
+}
+
+func TestFromSelectorsError(t *testing.T) {
+	_, err := FromSelectors([]string{"a #"})
+	ensure.Err(t, err, regexp.MustCompile("unexpected token"))
+}
