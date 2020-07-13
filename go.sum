@@ -35,6 +35,8 @@ github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnIn
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
+github.com/tdewolff/minify v1.1.0 h1:nxHQi1ML+g3ZbZHffiZ6eC7vMqNvSRfX3KB5Y5y/kfw=
+github.com/tdewolff/minify v2.3.6+incompatible h1:2hw5/9ZvxhWLvBUnHE06gElGYz+Jv9R4Eys0XUzItYo=
 github.com/tdewolff/minify/v2 v2.7.6 h1:b6UzNphZeDm3AVmk0a69orkNLPJzJx3k/AQ/W2xoMs8=
 github.com/tdewolff/minify/v2 v2.7.6/go.mod h1:Mt3hGbK/ETDplEP9EMNZo1lPkM3TZq0rDIVV76nFgY0=
 github.com/tdewolff/parse/v2 v2.4.3 h1:k24zHgTRGm7LkvbTEreuavyZTf0k8a/lIenggv62OiU=
