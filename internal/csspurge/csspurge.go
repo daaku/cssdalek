@@ -23,6 +23,7 @@ var (
 	atWebkitKeyframes = []byte("@-webkit-keyframes")
 	fontFamilyB       = []byte("font-family")
 	licenseCommentB   = []byte("/*!")
+	sourceMapCommentB = []byte("/*#")
 	quotesS           = `"'`
 )
 
@@ -148,7 +149,7 @@ func (c *purger) decl() pa.Next {
 }
 
 func (c *purger) comment() pa.Next {
-	if bytes.HasPrefix(c.data, licenseCommentB) {
+	if bytes.HasPrefix(c.data, licenseCommentB) || bytes.HasPrefix(c.data, sourceMapCommentB) {
 		pa.Write(c.out, c.data)
 		pa.WriteString(c.out, "\n")
 	}

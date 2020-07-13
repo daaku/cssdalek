@@ -94,7 +94,6 @@ checked for.
 ## TODO
 
 - [ ] space before !important
-- [ ] /*# comment for source mapping
 - [ ] Generate source mapping
 - [ ] Tables
 - [ ] CI tag based release pipeline
