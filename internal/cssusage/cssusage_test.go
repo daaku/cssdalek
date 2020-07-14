@@ -27,11 +27,19 @@ func TestInfoMerge(t *testing.T) {
 			"f1": {c1, c2},
 			"f2": {c1, c3},
 		},
+		Keyframes: map[string][]cssselector.Chain{
+			"k1": {c1, c2},
+			"k2": {c1, c3},
+		},
 	}
 	i2 := Info{
 		FontFace: map[string][]cssselector.Chain{
 			"f1": {c2, c3},
 			"f3": {c1, c2},
+		},
+		Keyframes: map[string][]cssselector.Chain{
+			"k1": {c2, c3},
+			"k3": {c1, c2},
 		},
 	}
 	i0.Merge(&i1)
@@ -41,6 +49,11 @@ func TestInfoMerge(t *testing.T) {
 			"f1": {c1, c2, c2, c3},
 			"f2": {c1, c3},
 			"f3": {c1, c2},
+		},
+		Keyframes: map[string][]cssselector.Chain{
+			"k1": {c1, c2, c2, c3},
+			"k2": {c1, c3},
+			"k3": {c1, c2},
 		},
 	})
 }
@@ -129,6 +142,14 @@ func TestFontFace(t *testing.T) {
 			css:  `@font-face { font-family: Foo; }`,
 		},
 		{
+			name: "import at-rule is ignored",
+			css:  `@import "bar.css"`,
+		},
+		{
+			name: "page at-rule is ignored",
+			css:  `@page { font-family: Foo; }`,
+		},
+		{
 			name: "keyframe at-rule is ignored",
 			css:  `@keyframes { 0% { font-family: red; } }`,
 		},
@@ -147,6 +168,10 @@ func TestFontFace(t *testing.T) {
 				"bar":     {aC},
 				"baz jax": {aC},
 			},
+		},
+		{
+			name: "no interesting rules are ignored",
+			css:  `foo { bar: baz; }`,
 		},
 	}
 
