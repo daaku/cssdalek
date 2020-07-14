@@ -407,6 +407,21 @@ func TestInvalidSelector(t *testing.T) {
 			"a .#",
 			regexp.MustCompile("unexpected token"),
 		},
+		{
+			"misplaced colon",
+			"a :",
+			regexp.MustCompile("unexpected token"),
+		},
+		{
+			"misplaced double colon",
+			"a ::",
+			regexp.MustCompile("unexpected token"),
+		},
+		{
+			"unexpected attribute",
+			"a [:",
+			regexp.MustCompile("unexpected token"),
+		},
 	}
 	for _, c := range cases {
 		c := c
