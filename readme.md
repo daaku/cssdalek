@@ -101,4 +101,3 @@ the selector determines usage.
 
 - [ ] Generate source mapping
 - [ ] Tables
-- [ ] CI tag based release pipeline
