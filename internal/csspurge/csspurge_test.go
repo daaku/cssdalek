@@ -32,7 +32,7 @@ func TestCore(t *testing.T) {
 		t.Run(filename, func(t *testing.T) {
 			contents, err := ioutil.ReadFile(filename)
 			ensure.Nil(t, err)
-			parts := bytes.SplitN(contents, []byte("\n--\n"), 3)
+			parts := bytes.SplitN(contents, []byte("----"), 3)
 			ensure.DeepEqual(t, len(parts), 3)
 			logger := log.New(ioutil.Discard, "", 0)
 			if testing.Verbose() {
