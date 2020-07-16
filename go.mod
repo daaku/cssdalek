@@ -3,6 +3,7 @@ module github.com/daaku/cssdalek
 go 1.14
 
 require (
+	github.com/daaku/buildinfo v1.0.1
 	github.com/daaku/ensure v1.0.1
 	github.com/dvyukov/go-fuzz v0.0.0-20200318091601-be3528f3a813 // indirect
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect

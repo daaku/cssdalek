@@ -19,6 +19,7 @@ import (
 	"github.com/daaku/cssdalek/internal/usage"
 	"github.com/daaku/cssdalek/internal/wordusage"
 
+	"github.com/daaku/buildinfo"
 	"github.com/facebookgo/errgroup"
 	"github.com/jpillora/opts"
 	"github.com/pkg/errors"
@@ -50,6 +51,7 @@ type app struct {
 	IncludeID       []string `opts:"help=id regexp to include"`
 	IncludeSelector []string `opts:"short=i,help=selectors to include"`
 	Verbose         bool     `opts:"short=v,help=verbose logging"`
+	Version         bool     `opts:"short=V,help=version & build information"`
 
 	htmlInfoMu sync.Mutex
 	htmlInfo   htmlusage.Info
@@ -132,6 +134,11 @@ func (a *app) buildCSSInfo(r io.Reader) error {
 }
 
 func (a *app) run() error {
+	if a.Version {
+		os.Stdout.Write(buildinfo.FullInfo())
+		return nil
+	}
+
 	start := time.Now()
 
 	if a.Verbose {
