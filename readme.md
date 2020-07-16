@@ -90,7 +90,8 @@ and set". For these selectors, if all the target nodes exist anywhere, we
 will include the selector. That is, the relationships are not actually
 checked for.
 
-1. Attribute selectors are all included if the attribute name is found.
+1. Attribute selectors are included if the attribute name is found. The value
+and type of operation is ignored.
 
 1. Psuedo elements and children are essentially ignored, and only the rest of
 the selector determines usage.
