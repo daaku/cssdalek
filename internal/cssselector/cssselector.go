@@ -121,6 +121,11 @@ outer:
 			case css.FunctionToken:
 				s.Function = append(s.Function, string(bytes.ToLower(bytes.TrimRight(data, "("))))
 				for tt, _ := l.Next(); tt != css.RightParenthesisToken; tt, _ = l.Next() {
+					if tt == css.ErrorToken {
+						return nil, errors.Wrapf(l.Err(),
+							"cssselector: error at offset %d while parsing function",
+							l.Offset())
+					}
 				}
 			case css.IdentToken:
 				s.PsuedoClass = append(s.PsuedoClass, string(bytes.ToLower(data)))
@@ -139,6 +144,11 @@ outer:
 				s.Attr[string(bytes.ToLower(next))] = struct{}{}
 			}
 			for tt, _ := l.Next(); tt != css.RightBracketToken; tt, _ = l.Next() {
+				if tt == css.ErrorToken {
+					return nil, errors.Wrapf(l.Err(),
+						"cssselector: error at offset %d while parsing attribute name",
+						l.Offset())
+				}
 			}
 		case css.DelimToken:
 			if len(data) != 1 {

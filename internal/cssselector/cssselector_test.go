@@ -422,6 +422,16 @@ func TestInvalidSelector(t *testing.T) {
 			"a [:",
 			regexp.MustCompile("unexpected token"),
 		},
+		{
+			"error parsing attribute name",
+			"\xd0\xfe[\xe7\x82",
+			regexp.MustCompile("parsing attribute name"),
+		},
+		{
+			"error parsing function",
+			":not(\xe7\x82",
+			regexp.MustCompile("parsing function"),
+		},
 	}
 	for _, c := range cases {
 		c := c
