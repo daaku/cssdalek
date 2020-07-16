@@ -32,7 +32,7 @@ jobs:
       run: go test ./...
     - uses: daaku/go-buildinfo@v1.0.2
     - name: Build
-      run: go build -trimpath -ldflags="$BI_LDFLAGS" ./...
+      run: go build -trimpath -ldflags="$BI_LDFLAGS"
     - name: Release
       uses: svenstaro/upload-release-action@2.0.0
       with:
