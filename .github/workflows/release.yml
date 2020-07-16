@@ -1,0 +1,43 @@
+name: Release
+on:
+  create:
+    tags:
+jobs:
+  build:
+    name: Release for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_name: cssdalek
+            asset_name: cssdalek-x86_64-unknown-linux-gnu
+          - os: macos-latest
+            artifact_name: cssdalek
+            asset_name: cssdalek-x86_64-apple-darwin
+          - os: windows-latest
+            artifact_name: cssdalek.exe
+            asset_name: cssdalek-x86_64-pc-windows-msvc.exe
+
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v2.1.0
+      with:
+        go-version: '1.14'
+    - uses: actions/checkout@v2.1.1
+    - name: Dependencies
+      run: go get -t -d ./...
+    - name: Test
+      run: go test ./...
+    - uses: daaku/go-buildinfo@v1.0.2
+    - name: Build
+      run: go build -trimpath -ldflags="$BI_LDFLAGS" ./...
+    - name: Release
+      uses: svenstaro/upload-release-action@2.0.0
+      with:
+        overwrite: true
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ matrix.artifact_name }}
+        asset_name: ${{ matrix.asset_name }}
+        tag: ${{ github.event.ref }}
