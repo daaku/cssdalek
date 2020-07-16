@@ -96,5 +96,3 @@ checked for.
 - [ ] Generate source mapping
 - [ ] Tables
 - [ ] CI tag based release pipeline
-- [ ] Fuzz testing
-- [ ] Test various invalid HTML/CSS scenarios
