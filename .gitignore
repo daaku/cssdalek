@@ -1,0 +1,4 @@
+**/fuzz/*-fuzz.zip
+**/fuzz/corpus
+**/fuzz/crashers
+**/fuzz/suppressions

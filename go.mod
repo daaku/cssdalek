@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/daaku/ensure v1.0.1
+	github.com/dvyukov/go-fuzz v0.0.0-20200318091601-be3528f3a813 // indirect
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
 	github.com/facebookgo/errgroup v0.0.0-20160209021148-779c8d7ef069
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
