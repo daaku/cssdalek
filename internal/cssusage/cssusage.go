@@ -11,6 +11,7 @@ import (
 	"github.com/daaku/cssdalek/internal/pa"
 
 	"github.com/pkg/errors"
+	"github.com/tdewolff/parse/v2"
 	"github.com/tdewolff/parse/v2/css"
 )
 
@@ -60,7 +61,7 @@ func (i *Info) Merge(other *Info) {
 func Extract(r io.Reader) (*Info, error) {
 	i := &Info{}
 	e := &extractor{
-		parser: css.NewParser(r, false),
+		parser: css.NewParser(parse.NewInput(r), false),
 		info:   i,
 	}
 	if err := pa.Finish(e.outer); err != nil {

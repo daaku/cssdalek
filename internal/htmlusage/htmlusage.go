@@ -9,6 +9,7 @@ import (
 	"github.com/daaku/cssdalek/internal/cssselector"
 
 	"github.com/pkg/errors"
+	"github.com/tdewolff/parse/v2"
 	"github.com/tdewolff/parse/v2/html"
 )
 
@@ -59,7 +60,8 @@ func FromSelectors(ss []string) (*Info, error) {
 }
 
 func Extract(r io.Reader) (*Info, error) {
-	l := html.NewLexer(r)
+	i := parse.NewInput(r)
+	l := html.NewLexer(i)
 	var seenNodes []cssselector.Selector
 docloop:
 	for {
@@ -70,7 +72,7 @@ docloop:
 			if err == io.EOF {
 				break docloop
 			}
-			return nil, errors.WithMessagef(err, "at offset %d", l.Offset())
+			return nil, errors.WithMessagef(err, "at offset %d", i.Offset())
 		case html.StartTagToken:
 			tag := cssselector.Selector{
 				Tag: string(bytes.ToLower(l.Text())),
@@ -80,7 +82,7 @@ docloop:
 				ttAttr, _ := l.Next()
 				switch ttAttr {
 				default:
-					return nil, errors.Errorf("unexpected token type %s at offset %d", ttAttr, l.Offset())
+					return nil, errors.Errorf("unexpected token type %s at offset %d", ttAttr, i.Offset())
 				case html.AttributeToken:
 					name := l.Text()
 					if bytes.EqualFold(name, idB) {

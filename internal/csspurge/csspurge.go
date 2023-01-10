@@ -12,6 +12,7 @@ import (
 	"github.com/daaku/cssdalek/internal/usage"
 
 	"github.com/pkg/errors"
+	"github.com/tdewolff/parse/v2"
 	"github.com/tdewolff/parse/v2/css"
 )
 
@@ -32,7 +33,7 @@ func Purge(u usage.Info, c *cssusage.Info, l *log.Logger, r io.Reader, w io.Writ
 		usageInfo: u,
 		cssInfo:   c,
 		log:       l,
-		parser:    css.NewParser(r, false),
+		parser:    css.NewParser(parse.NewInput(r), false),
 		out:       w,
 	}
 	return pa.Finish(p.outer)

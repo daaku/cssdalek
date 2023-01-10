@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
+	"github.com/tdewolff/parse/v2"
 	"github.com/tdewolff/parse/v2/css"
 )
 
@@ -79,7 +80,8 @@ func (s *Selector) Matches(node *Selector) bool {
 type Chain []Selector
 
 func Parse(selector io.Reader) (Chain, error) {
-	l := css.NewLexer(selector)
+	i := parse.NewInput(selector)
+	l := css.NewLexer(i)
 	s := Selector{}
 	chain := make(Chain, 0, 1)
 outer:
@@ -89,7 +91,7 @@ outer:
 		default:
 			return nil, errors.Errorf(
 				"cssselector: unexpected token %s with data %q at offset %d",
-				tt, data, l.Offset())
+				tt, data, i.Offset())
 		case css.ErrorToken:
 			err := l.Err()
 			if err == io.EOF {
@@ -107,14 +109,14 @@ outer:
 			default:
 				return nil, errors.Errorf(
 					"cssselector: unexpected token %s with data %q at offset %d after colon",
-					tt, data, l.Offset())
+					tt, data, i.Offset())
 			case css.ColonToken:
 				tt, data := l.Next()
 				switch tt {
 				default:
 					return nil, errors.Errorf(
 						"cssselector: unexpected token %s with data %q at offset %d after colon",
-						tt, data, l.Offset())
+						tt, data, i.Offset())
 				case css.IdentToken:
 					s.PsuedoElement = append(s.PsuedoElement, string(bytes.ToLower(data)))
 				}
@@ -124,7 +126,7 @@ outer:
 					if tt == css.ErrorToken {
 						return nil, errors.Wrapf(l.Err(),
 							"cssselector: error at offset %d while parsing function",
-							l.Offset())
+							i.Offset())
 					}
 				}
 			case css.IdentToken:
@@ -135,7 +137,7 @@ outer:
 			if tt != css.IdentToken {
 				return nil, errors.Errorf(
 					"cssselector: unexpected token %s with %q followed by %q at offset %d while parsing attribute name",
-					tt, data, next, l.Offset())
+					tt, data, next, i.Offset())
 			}
 			if !isExcludedAttr(next) {
 				if s.Attr == nil {
@@ -147,20 +149,20 @@ outer:
 				if tt == css.ErrorToken {
 					return nil, errors.Wrapf(l.Err(),
 						"cssselector: error at offset %d while parsing attribute name",
-						l.Offset())
+						i.Offset())
 				}
 			}
 		case css.DelimToken:
 			if len(data) != 1 {
 				return nil, errors.Errorf(
 					"cssselector: unexpected token %s with data %q at offset %d while parsing delimiter",
-					tt, data, l.Offset())
+					tt, data, i.Offset())
 			}
 			switch data[0] {
 			default:
 				return nil, errors.Errorf(
 					"cssselector: unexpected token %s with data %q at offset %d while parsing delimiter",
-					tt, data, l.Offset())
+					tt, data, i.Offset())
 			case '*':
 				continue
 			case '.':
@@ -168,7 +170,7 @@ outer:
 				if tt != css.IdentToken {
 					return nil, errors.Errorf(
 						"cssselector: unexpected token %s with %q followed by %q at offset %d while parsing class selector",
-						tt, data, next, l.Offset())
+						tt, data, next, i.Offset())
 				}
 				if s.Class == nil {
 					s.Class = make(map[string]struct{})
