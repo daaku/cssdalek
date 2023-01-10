@@ -31,7 +31,7 @@ jobs:
       run: go get -t -d ./...
     - name: Test
       run: go test ./... -race -cover
-    - uses: daaku/go-buildinfo@v1.0.2
+    - uses: daaku/go-buildinfo@v1.1.0
     - name: Build
       run: go build -trimpath -ldflags="$BI_LDFLAGS"
     - name: Release
