@@ -22,24 +22,23 @@ jobs:
             artifact_name: cssdalek.exe
             asset_name: cssdalek-x86_64-windows.exe
     steps:
-    - name: Set up Go
-      uses: actions/setup-go@v3.5.0
-      with:
-        go-version: '1.14'
-    - uses: actions/checkout@v3.3.0
-    - name: Dependencies
-      run: go get -t -d ./...
-    - name: Test
-      run: go test ./... -race -cover
-    - uses: daaku/go-buildinfo@v1.1.0
-    - name: Build
-      run: go build -trimpath -ldflags="$BI_LDFLAGS"
-    - name: Release
-      uses: svenstaro/upload-release-action@2.4.0
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      with:
-        overwrite: true
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{ matrix.artifact_name }}
-        asset_name: ${{ matrix.asset_name }}
-        tag: ${{ github.event.ref }}
+      - name: Set up Go
+        uses: actions/setup-go@v3.5.0
+        with:
+          go-version: "1.19"
+      - uses: actions/checkout@v3.3.0
+      - name: Dependencies
+        run: go get -t -d ./...
+      - name: Test
+        run: go test ./... -race -cover
+      - name: Build
+        run: go build -trimpath -ldflags="$BI_LDFLAGS"
+      - name: Release
+        uses: svenstaro/upload-release-action@2.4.0
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        with:
+          overwrite: true
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.event.ref }}

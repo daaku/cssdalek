@@ -1,6 +1,4 @@
 github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927/go.mod h1:h/aW8ynjgkuj+NQRlZcDbAbM1ORAbXjXX77sX7T289U=
-github.com/daaku/buildinfo v1.0.2 h1:FGgyeiYRl9mUpncefMY5DtCwZ34Kb/teJ7iQg6w537s=
-github.com/daaku/buildinfo v1.0.2/go.mod h1:sQOz6ziqkwADKnn+hLuSOKe8TmcxKdXr3rcH3Lpsb5U=
 github.com/daaku/ensure v1.0.1 h1:nnbJcD3PSxo6Jm7p8ODuw9WdMCHceF+z4fs+xCbj+PU=
 github.com/daaku/ensure v1.0.1/go.mod h1:DtAAnvKyntGyC/wijZKtC48R79j6YDoePh1/idKgDwc=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

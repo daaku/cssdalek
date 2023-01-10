@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -19,7 +20,6 @@ import (
 	"github.com/daaku/cssdalek/internal/usage"
 	"github.com/daaku/cssdalek/internal/wordusage"
 
-	"github.com/daaku/buildinfo"
 	"github.com/facebookgo/errgroup"
 	"github.com/jpillora/opts"
 	"github.com/pkg/errors"
@@ -135,7 +135,9 @@ func (a *app) buildCSSInfo(r io.Reader) error {
 
 func (a *app) run() error {
 	if a.Version {
-		os.Stdout.Write(buildinfo.FullInfo())
+		if bi, ok := debug.ReadBuildInfo(); ok {
+			os.Stdout.WriteString(bi.String())
+		}
 		return nil
 	}
 
