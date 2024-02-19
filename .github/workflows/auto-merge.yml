@@ -1,0 +1,15 @@
+name: Auto Merge
+on:
+  pull_request_target:
+jobs:
+  merge:
+    name: Merge PR
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Merge
+        run: |
+          gh pr review ${{ github.event.pull_request.html_url }} --approve
+          gh pr merge ${{ github.event.pull_request.html_url }} --rebase
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
