@@ -29,8 +29,8 @@ github.com/posener/complete v1.2.3/go.mod h1:WZIdtGGp+qx0sLrYKtIRAruyNpv6hFCicSg
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
-github.com/tdewolff/minify/v2 v2.20.19 h1:tX0SR0LUrIqGoLjXnkIzRSIbKJ7PaNnSENLD4CyH6Xo=
-github.com/tdewolff/minify/v2 v2.20.19/go.mod h1:ulkFoeAVWMLEyjuDz1ZIWOA31g5aWOawCFRp9R/MudM=
+github.com/tdewolff/minify/v2 v2.20.20 h1:vhULb+VsW2twkplgsawAoUY957efb+EdiZ7zu5fUhhk=
+github.com/tdewolff/minify/v2 v2.20.20/go.mod h1:GYaLXFpIIwsX99apQHXfGdISUdlA98wmaoWxjT9C37k=
 github.com/tdewolff/parse/v2 v2.7.13 h1:iSiwOUkCYLNfapHoqdLcqZVgvQ0jrsao8YYKP/UJYTI=
 github.com/tdewolff/parse/v2 v2.7.13/go.mod h1:3FbJWZp3XT9OWVN3Hmfp0p/a08v4h8J9W1aghka0soA=
 github.com/tdewolff/test v1.0.11-0.20231101010635-f1265d231d52/go.mod h1:6DAvZliBAAnD7rhVgwaM7DE5/d9NMOAJ09SqYqeK4QE=
