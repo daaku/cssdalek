@@ -23,7 +23,7 @@ jobs:
             asset_name: cssdalek-x86_64-windows.exe
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.19"
       - uses: actions/checkout@v5
