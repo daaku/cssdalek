@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/daaku/ensure v1.0.1
 	github.com/facebookgo/errgroup v0.0.0-20160209021148-779c8d7ef069
-	github.com/jpillora/opts v1.5.0
+	github.com/jpillora/opts v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/tdewolff/minify/v2 v2.24.13
 	github.com/tdewolff/parse/v2 v2.8.12
