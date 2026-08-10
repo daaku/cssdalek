@@ -8,7 +8,7 @@ require (
 	github.com/jpillora/opts v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/tdewolff/minify/v2 v2.24.14
-	github.com/tdewolff/parse/v2 v2.8.14
+	github.com/tdewolff/parse/v2 v2.8.15
 )
 
 require (
