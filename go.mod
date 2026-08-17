@@ -7,8 +7,8 @@ require (
 	github.com/facebookgo/errgroup v0.0.0-20160209021148-779c8d7ef069
 	github.com/jpillora/opts v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/tdewolff/minify/v2 v2.24.16
-	github.com/tdewolff/parse/v2 v2.8.15
+	github.com/tdewolff/minify/v2 v2.24.17
+	github.com/tdewolff/parse/v2 v2.8.16
 )
 
 require (
