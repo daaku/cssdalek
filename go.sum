@@ -17,8 +17,10 @@ github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brv
 github.com/hashicorp/go-multierror v1.0.0/go.mod h1:dHtQlpGsu+cZNNAkkCN/P3hoUDHhCYQXV3UM06sGGrk=
 github.com/hashicorp/go-multierror v1.1.1 h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo=
 github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9/fmwbPZ6JB6eMoM=
-github.com/jpillora/opts v1.8.1 h1:qfcpc1W1bxRMdnwzFt+j9QTgtoofMtQksPmcDTYhLA8=
-github.com/jpillora/opts v1.8.1/go.mod h1:qImEWPlyKljhTZZlYxhGbZVBTlJTibClZQRZbpNr/QM=
+github.com/jpillora/opts v1.8.2 h1:qrIzq7qHt6t+u8P7PzLZ8b/Ek+VW1NxAD99KwzqO/BU=
+github.com/jpillora/opts v1.8.2/go.mod h1:aXVTjHUqmxQHzxGFraH/gqVzBo6wiiliP0MNH3PtLeE=
+github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
+github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
@@ -34,6 +36,9 @@ github.com/tdewolff/parse/v2 v2.8.16 h1:bLk5svUOQRkW/Y2SJ+DeENSIkZBcTIkq+Atyv5D8
 github.com/tdewolff/parse/v2 v2.8.16/go.mod h1:XdsoSFThlVIRIajAuqz1evNY7bagZS8LBOPA3aVopwQ=
 github.com/tdewolff/test v1.0.12 h1:7F21DqIajswxuche0geHdrUZRCWE4oko4b7bcmkkrxk=
 github.com/tdewolff/test v1.0.12/go.mod h1:XPuWBzvdUzhCuxWO1ojpXsyzsA5bFoS3tO/Q3kFuTG8=
+golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.47.0 h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=
+golang.org/x/sys v0.47.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=

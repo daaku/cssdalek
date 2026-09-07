@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/daaku/ensure v1.0.1
 	github.com/facebookgo/errgroup v0.0.0-20160209021148-779c8d7ef069
-	github.com/jpillora/opts v1.8.1
+	github.com/jpillora/opts v1.8.2
 	github.com/pkg/errors v0.9.1
 	github.com/tdewolff/minify/v2 v2.24.17
 	github.com/tdewolff/parse/v2 v2.8.16
@@ -18,5 +18,7 @@ require (
 	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/posener/complete v1.2.3 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 )
