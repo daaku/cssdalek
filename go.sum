@@ -32,8 +32,8 @@ github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJy
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/tdewolff/minify/v2 v2.24.19 h1:j2exx54gvrCFN9UiFm0Z5vbNWBFcuY5Ql1VmaM2Dkeo=
 github.com/tdewolff/minify/v2 v2.24.19/go.mod h1:HVgQO08FJeDxQx+lcFOVDi1IySi/77WlN/dDckCkZoA=
-github.com/tdewolff/parse/v2 v2.8.16 h1:bLk5svUOQRkW/Y2SJ+DeENSIkZBcTIkq+Atyv5D8feI=
-github.com/tdewolff/parse/v2 v2.8.16/go.mod h1:XdsoSFThlVIRIajAuqz1evNY7bagZS8LBOPA3aVopwQ=
+github.com/tdewolff/parse/v2 v2.8.18 h1:XkWp4Ow06VF8xGWy3ifh/aOK66UsSAs8p1nsFX0Jj3k=
+github.com/tdewolff/parse/v2 v2.8.18/go.mod h1:OemXEPll2+Sn7pQ6xFxC9cEm1wDnNt1hC2q3jIh+OoI=
 github.com/tdewolff/test v1.0.12 h1:7F21DqIajswxuche0geHdrUZRCWE4oko4b7bcmkkrxk=
 github.com/tdewolff/test v1.0.12/go.mod h1:XPuWBzvdUzhCuxWO1ojpXsyzsA5bFoS3tO/Q3kFuTG8=
 golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
