@@ -1,13 +1,13 @@
 module github.com/daaku/cssdalek
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/daaku/ensure v1.0.1
 	github.com/facebookgo/errgroup v0.0.0-20160209021148-779c8d7ef069
 	github.com/jpillora/opts v1.9.0
 	github.com/pkg/errors v0.9.1
-	github.com/tdewolff/minify/v2 v2.24.19
+	github.com/tdewolff/minify/v2 v2.24.21
 	github.com/tdewolff/parse/v2 v2.8.18
 )
 
@@ -20,5 +20,5 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/posener/complete v1.2.3 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 )
