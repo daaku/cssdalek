@@ -7,8 +7,8 @@ require (
 	github.com/facebookgo/errgroup v0.0.0-20160209021148-779c8d7ef069
 	github.com/jpillora/opts v1.9.0
 	github.com/pkg/errors v0.9.1
-	github.com/tdewolff/minify/v2 v2.24.25
-	github.com/tdewolff/parse/v2 v2.8.20
+	github.com/tdewolff/minify/v2 v2.25.0
+	github.com/tdewolff/parse/v2 v2.25.0
 )
 
 require (
@@ -20,5 +20,5 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/posener/complete v1.2.3 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
